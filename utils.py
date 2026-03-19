@@ -147,36 +147,57 @@ def parse_time_string(s: str) -> List[TimeSlot]:
     ]
 
 
-def expand_recurring_slots(slots: List[TimeSlot], weeks: int = 4) -> List[TimeSlot]:
+def expand_recurring_availability(slots: List[TimeSlot], weeks: int = 4) -> List[TimeSlot]:
     """
     Expands recurring slots into specific instances for the next N weeks.
-    Recurring slots get a specific 'date' assigned while non-recurring are kept as-is.
+    Includes:
+    - Deduplication: Prevents duplicate identical slots on the same date.
+    - Validation: Skips slots that occurred in the past (including earlier today).
     """
     expanded_slots = []
     base_date = date.today()
+    now_time = datetime.now().time()
+    
+    # Tracking to prevent duplicate entries
+    seen = set()
 
     for slot in slots:
-        if not slot.is_recurring:
-            expanded_slots.append(slot)
-            continue
-
-        # Map DayOfWeek to Python's weekday() (Mon=0, Sun=6)
+        # Determine the first occurrence date based on the day of the week
         day_idx = DAY_ORDER.index(slot.day)
         days_ahead = (day_idx - base_date.weekday()) % 7
+        
+        # If the day was today but the time has passed, jump to next week
+        # for non-recurring or just skip the first instance for recurring
         first_occurrence = base_date + timedelta(days=days_ahead)
-
-        for w in range(weeks):
-            occurrence_date = first_occurrence + timedelta(weeks=w)
+        
+        # Determine how many instances to generate
+        iterations = weeks if slot.is_recurring else 1
+        
+        for i in range(iterations):
+            occurrence_date = first_occurrence + timedelta(weeks=i)
+            
+            # Validation: Skip if date/time is in the past
+            if occurrence_date < base_date:
+                continue
+            if occurrence_date == base_date and slot.end_time <= now_time:
+                continue
+                
+            # Deduplication check
+            identity = (occurrence_date, slot.start_time, slot.end_time)
+            if identity in seen:
+                continue
+            
             expanded_slots.append(
                 TimeSlot(
                     day=slot.day,
                     start_time=slot.start_time,
                     end_time=slot.end_time,
                     date=occurrence_date,
-                    is_recurring=True,
+                    is_recurring=slot.is_recurring,
                     preference_level=slot.preference_level
                 )
             )
+            seen.add(identity)
 
     return expanded_slots
 
