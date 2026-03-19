@@ -111,7 +111,34 @@
         </div>
     </main>
 
-    <!-- Modal for Result (Invisible by default) -->
+    <!-- Results Area (Hidden by default) -->
+    <section id="results-area" class="hidden max-w-6xl mx-auto mt-12 mb-24 px-4">
+        <div class="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
+            <div>
+                <h2 class="text-3xl font-bold">Optimized <span class="gradient-text">Schedule</span></h2>
+                <p class="text-slate-400 text-sm">Calculated using multi-factor quality weights and AI reasoning</p>
+            </div>
+            <button onclick="window.print()" class="text-sm bg-slate-800 px-6 py-2 rounded-xl border border-slate-700 hover:bg-slate-700 transition flex items-center gap-2">
+                <i class="fas fa-print"></i> Export Schedule
+            </button>
+        </div>
+        
+        <div id="assignment-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            <!-- Dynamic Cards Injected Here -->
+        </div>
+
+        <!-- Conflict Resolution Box -->
+        <div id="conflict-box" class="hidden p-8 rounded-3xl border border-rose-500/30 bg-rose-500/5 backdrop-blur-sm">
+            <h3 class="text-xl text-rose-400 font-bold mb-4 flex items-center gap-3">
+                <i class="fas fa-exclamation-triangle"></i> Optimization Impasse Detected
+            </h3>
+            <div id="conflict-content" class="text-slate-300 leading-relaxed max-w-none">
+                <!-- AI Strategy Here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal for Result -->
     <div id="loading-overlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex flex-col items-center justify-center z-50">
         <div class="relative w-24 h-24 mb-6">
             <div class="absolute inset-0 border-4 border-sky-400/20 rounded-full"></div>
@@ -121,7 +148,7 @@
         <p class="text-slate-400 text-sm mt-2">AI is parsing availability & calculating optimal scores</p>
     </div>
 
-    <!-- Scripting for Dynamic Forms -->
+    <!-- Scripting -->
     <script>
         function addCandidate() {
             const list = document.getElementById('candidate-list');
@@ -152,11 +179,128 @@
         }
 
         async function generateSchedule() {
-             const overlay = document.getElementById('loading-overlay');
-             overlay.classList.remove('hidden');
-             
-             // ... logic will be added in next step to call API ...
-             setTimeout(() => overlay.classList.add('hidden'), 2000);
+            const overlay = document.getElementById('loading-overlay');
+            const submitBtn = document.getElementById('submit-btn');
+            const resultsArea = document.getElementById('results-area');
+            const grid = document.getElementById('assignment-grid');
+            
+            // 1. Gather Data & Validation
+            const candidates = Array.from(document.querySelectorAll('.candidate-entry'))
+                .map(el => ({
+                    name: el.querySelectorAll('input')[0].value.trim(),
+                    availability: el.querySelectorAll('input')[1].value.trim(),
+                }))
+                .filter(c => c.name && c.availability);
+
+            const interviewers = Array.from(document.querySelectorAll('.interviewer-entry'))
+                .map(el => ({
+                    name: el.querySelectorAll('input')[0].value.trim(),
+                    availability: el.querySelectorAll('input')[1].value.trim(),
+                }))
+                .filter(i => i.name && i.availability);
+
+            const duration = parseInt(document.getElementById('duration').value);
+
+            if (candidates.length === 0 || interviewers.length === 0) {
+                alert("⚠️ Please add at least one candidate and one interviewer with full details.");
+                return;
+            }
+
+            try {
+                overlay.classList.remove('hidden');
+                submitBtn.disabled = true;
+                resultsArea.classList.add('hidden');
+                
+                const response = await fetch('/api/schedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        candidates: candidates.map(c => ({ name: c.name, availability: c.availability })), 
+                        interviewers: interviewers.map(i => ({ name: i.name, availability: i.availability })), 
+                        duration 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.detail || "Our servers hit a snag during optimization.");
+
+                // 2. Render Success State
+                grid.innerHTML = '';
+                data.assignments.forEach(a => {
+                    const card = document.createElement('div');
+                    card.className = 'glass-card rounded-3xl p-6 border-l-4 border-sky-400 group hover:border-sky-300 transition-all duration-300';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-6">
+                            <span class="text-[10px] font-black uppercase tracking-[0.2em] text-sky-400 bg-sky-400/10 px-2 py-1 rounded-md">Validated Choice</span>
+                            <div class="text-right">
+                                <p class="text-[10px] text-slate-500 uppercase font-bold">Optimization Rank</p>
+                                <p class="text-sm font-bold text-sky-300">#${a.score}</p>
+                            </div>
+                        </div>
+                        <h4 class="text-xl font-bold mb-1">${a.candidate}</h4>
+                        <p class="text-slate-400 text-sm mb-6 flex items-center gap-2">
+                             <i class="fas fa-handshake text-indigo-400"></i> with ${a.interviewer}
+                        </p>
+                        
+                        <div class="bg-slate-950/40 rounded-2xl p-4 mb-6 border border-white/5 group-hover:bg-slate-950/60 transition">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center text-sky-400">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">${a.slot.day}${a.slot.date ? ' • ' + a.slot.date : ''}</p>
+                                    <p class="text-md font-bold text-slate-200">${a.slot.time}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="relative bg-indigo-500/5 rounded-2xl p-4 border border-indigo-500/10">
+                            <p class="text-xs text-indigo-300 italic leading-relaxed">
+                                <i class="fas fa-quote-left mr-2 opacity-30"></i>
+                                ${a.reasoning}
+                                <i class="fas fa-quote-right ml-1 opacity-30 text-right"></i>
+                            </p>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+
+                // 3. Handle Impasses (Conflicts)
+                const conflictBox = document.getElementById('conflict-box');
+                const conflictContent = document.getElementById('conflict-content');
+                if (data.unassigned.length > 0) {
+                    conflictBox.classList.remove('hidden');
+                    conflictContent.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                             <div>
+                                <p class="text-rose-400 font-bold text-sm uppercase mb-3 tracking-widest">Unassigned Roster</p>
+                                <div class="flex flex-wrap gap-2">
+                                    ${data.unassigned.map(name => `<span class="bg-rose-500/20 text-rose-300 px-3 py-1 rounded-full text-xs font-semibold border border-rose-500/20">${name}</span>`).join('')}
+                                </div>
+                             </div>
+                             <div>
+                                <p class="text-emerald-400 font-bold text-sm uppercase mb-3 tracking-widest">AI Resolution Strategy</p>
+                                <div class="text-sm prose prose-invert max-w-none text-slate-300 space-y-2">
+                                    ${data.conflict_resolution.replace(/\n/g, '<br>')}
+                                </div>
+                             </div>
+                        </div>
+                    `;
+                } else {
+                    conflictBox.classList.add('hidden');
+                }
+
+                resultsArea.classList.remove('hidden');
+                resultsArea.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (err) {
+                console.error(err);
+                alert("❌ Optimization Error: " + err.message);
+            } finally {
+                overlay.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
         }
     </script>
 </body>
