@@ -1,113 +1,116 @@
-# ⚡ SlotMaxxer: AI-Powered Interview Slot Optimizer
+<p align="center">
+  <img src="https://img.icons8.com/clouds/200/calendar-plus.png" width="128" height="128" alt="SlotMaxxer Logo" />
+</p>
 
-SlotMaxxer is a high-performance, recruiter-grade scheduling optimization engine. It utilizes a **Greedy Constraint-Satisfaction Algorithm** combined with **LLM-driven analysis** (via Groq/Llama-3) to transform natural language availability into perfectly optimized interview grids.
+<h1 align="center">⚡ SlotMaxxer</h1>
+
+<p align="center">
+  <strong>The Recruiter-Grade Optimization Engine that Turns Scheduling Chaos into Pure Logic.</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Maintained%3F-yes-emerald?style=for-the-badge" alt="Maintained" />
+  <img src="https://img.shields.io/badge/Powered%20By-Groq%20AI-sky?style=for-the-badge" alt="Groq" />
+  <img src="https://img.shields.io/badge/License-MIT-indigo?style=for-the-badge" alt="License" />
+  <img src="https://img.shields.io/badge/PRs-Welcome-fuchsia?style=for-the-badge" alt="PRs Welcome" />
+</p>
+
+<br />
 
 ---
 
-## 🚀 Quick Start
+### 💡 The Workflow Nightmare
 
-### 1. Prerequisites
-- **Python 3.10+** (Recommended: [uv](https://github.com/astral-sh/uv))
-- **Groq API Key** (Get it at [console.groq.com](https://console.groq.com/))
+Recruiters spend **~3 hours weekly** manually cross-referencing natural language emails like *"Free Tue-Thu but prefer afternoons"* against panel availability. This leads to burnout, double-bookings, and "suboptimal" slots that frustrate busy interviewers.
 
-### 2. Installation
+**SlotMaxxer** solves this by combining **Greedy Optimization Algorithms** with **LLM-driven Natural Language Understanding**.
+
+---
+
+### 🔥 Feature Highlights
+
+- **🧠 Deep NLU Parsing**: Paste raw, messy availability text—SlotMaxxer extracts structured JSON time-windows instantly via Groq/Llama-3.
+- **⚡ Greedy Optimization**: A multi-factor constraint-satisfaction engine that maximizes "Quality Scores" across candidates and panelists.
+- **🔄 Live Visual Diff**: Cancel an interview? See a side-by-side comparison of how the system re-optimizes the grid in real-time.
+- **📧 Pro-Grade Communication**: Automatic generation of personalized, reasoning-focused interview invitations with one-click copy.
+- **📊 Timeline Strategy**: Horizontally scrolling density maps that reveal scheduling hotspots before they become bottlenecks.
+- **💎 Glassmorphism UI**: A premium, recruiter-first dashboard designed for high-focus coordination.
+
+---
+
+### 🛣️ How It Works
+
+```mermaid
+graph TD
+    A[Recruiter Input] -->|Raw Text| B(Groq AI Parser)
+    B -->|Structured Slots| C{Optimal Engine}
+    C -->|Score Weighting| D[Final Schedule Grid]
+    D -->|AI Reasoning| E[Decision Dashboard]
+    E -->|One-Click| F[Professional Invitation]
+```
+
+---
+
+### 🚀 Quick Start
+
+#### 1. Direct Install (Requires [uv](https://github.com/astral-sh/uv))
 ```bash
+# Clone the repository
 git clone https://github.com/your-username/slotmaxxer.git
 cd slotmaxxer
-```
 
-### 3. Environment Setup
-Create a `.env` file in the root directory:
-```env
-GROQ_API_KEY=your_api_key_here
-```
+# Add your credentials
+echo "GROQ_API_KEY=your_key_here" > .env
 
-### 4. Run the Platform
-```bash
+# Fire up the engine
 uv run uvicorn api:app --port 8000 --reload
 ```
-Visit **`http://localhost:8000`** to access the dashboard.
+
+#### 2. Launch
+Head over to **[`http://localhost:8000`](http://localhost:8000)** and start "maxxing" your slots.
 
 ---
 
-## 🏗️ Architecture Matrix
+### 🛡️ Tech Stack
 
-SlotMaxxer follows a decoupled, AI-augmented architecture for maximum reliability and speed.
+SlotMaxxer is built for speed, simplicity, and zero-learning-curves:
 
-```text
-[ RECRUITER UI ]  <-- (REST / JSON) -->  [ FASTAPI GATEWAY ]
-      |                                       |
-      | (JS / Tailwind / Glassmorphism)       | (Logging & Validation)
-      v                                       v
-[ NATURAL LANG PARSER ]  <-- (Groq) -->  [ SCHEDULER ENGINE ]
-      |                                       |
-      | (LLama-3 JSON Mode)                   | (Greedy Optimization)
-      v                                       v
-[ STRUCTURED SLOTS ]    ------------->   [ OPTIMAL MATRIX ]
-                                              |
-                                              v
-                                       [ REASONING ENGINE ]
-                                       (Human-readable UX)
-```
-
-### Core Components:
-- **`api.py`**: FastAPI endpoints (`/api/schedule`, `/api/reassign`).
-- **`ai_processor.py`**: Integration with Groq for availability parsing and strategic reasoning.
-- **`scheduler_engine.py`**: The "brain" that solves the N-to-N assignment problem using quality scorings.
-- **`models.py`**: Pydantic data schemas (Timeslots, Assignments, Requests).
-- **`utils.py`**: Time expansion (recurring slots) and recruiter email template generation.
+- **Backend**: [FastAPI](https://fastapi.tiagolo.org/) (High-performance API Gateway)
+- **Intelligence**: [Groq](https://groq.com/) + Llama-3-70b (Sub-second LLM inference)
+- **Algorithm**: Pure Python (Greedy Constraint Satisfaction)
+- **Frontend**: Tailwind CSS + FontAwesome (Modern "Glass" Aesthetic)
 
 ---
 
-## 🛠️ API Documentation
+### 🔧 Configuration Weights
 
-### `POST /api/schedule`
-Generates a full schedule from a list of candidates and interviewers.
-- **Payload**: `ScheduleRequest`
-- **Output**: `ScheduleResponse` containing assignments, AI reasoning, and backup slots.
+The "Quality Score" depends on multiple factors that ensure **Recruiter Intent** is preserved:
 
-### `POST /api/reassign`
-Handles a single cancellation and re-optimizes the remaining grid.
-- **Payload**: `ReassignRequest`
-- **Output**: `ReassignResponse` with visual diff data and impact analysis.
-
----
-
-## 🌟 Example Use Cases
-
-### Case 1: High-Density Recruiting
-Input: *"Alice is free Tue-Thu afternoon. Dr. Bob is free Wed 9 AM-4 PM."*
-**SlotMaxxer** identifies the overlapping Wed afternoon slot, assigns Alice to Dr. Bob, and benchmarks it as a "High-Quality Match" due to low density.
-
-### Case 2: Emergency Cancellation
-A candidate cancels their Wednesday slot.
-**SlotMaxxer** instantly identifies the next best window across all panelists, generates a new email invitation, and provides a "Visual Diff" for the recruiter.
+| Factor | Weight | Goal |
+| :--- | :---: | :--- |
+| **Candidate Preference** | +1000 | Ensure candidate satisfaction & higher close rates. |
+| **Interviewer Priority** | +500 | Respect busy panelist calendars. |
+| **Peak-Time Bonus** | +200 | Prioritize 10 AM - 2 PM for high energy levels. |
+| **Scarcity Multiplier** | Dynamic | Protect rare interviewers from burnout. |
 
 ---
 
-## 🔧 Troubleshooting
+### 🤝 Contributing
 
-| Issue | Solution |
-| :--- | :--- |
-| **API Error 422** | Check that input strings aren't empty. Use valid names. |
-| **Groq Connection Failed** | Ensure your `GROQ_API_KEY` is set correctly in `.env`. |
-| **Infinite Loading** | Check the terminal for uvicorn logs. The AI might be timing out. |
-| **Zero Assignments** | Ensure at least one candidate time overlaps with one interviewer time. |
+We love builders! If you have a smarter optimization algorithm or a cleaner UI component, open a PR.
 
----
-
-## 🤝 Contributing
-
-We welcome optimizations to the constraint-satisfaction algorithm!
-1. Fork the Repo.
-2. Create your Feature Branch (`git checkout -b feature/AmazingAlgorithm`).
-3. Commit your Changes (`git commit -m 'Add smarter weighting'`).
-4. Push to the Branch (`git push origin feature/AmazingAlgorithm`).
+1. Fork the repo.
+2. Create a branch (`git checkout -b feat/YourFeature`).
+3. Commit (`git commit -am 'Add something awesome'`).
+4. Push (`git push origin feat/YourFeature`).
 5. Open a Pull Request.
 
 ---
 
-## 📄 License
-Distributed under the MIT License. See `LICENSE` for more information.
+### 📄 License
 
-*Built with ⚡ by the SlotMaxxer Team.*
+This project is licensed under the **MIT License**. Use it to optimize your company's efficiency or build the next big recruitment tool.
+
+<p align="center">
+  Built with ⚡ by the <strong>SlotMaxxer Team</strong>
+</p>
