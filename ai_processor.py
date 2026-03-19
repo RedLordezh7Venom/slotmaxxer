@@ -3,7 +3,7 @@ import json
 import logging
 from typing import List, Optional
 from groq import Groq
-from models import TimeSlot, DayOfWeek, PreferenceLevel
+from models import TimeSlot, DayOfWeek, PreferenceLevel, Candidate, Assignment
 from utils import parse_time_string
 from datetime import time
 
