@@ -151,6 +151,43 @@
             <!-- Day Pills Injected Here -->
         </div>
         
+        <!-- Reassignment Diff Area (Hidden by default) -->
+        <section id="reassign-area" class="hidden mb-16 p-10 rounded-[3rem] bg-slate-900/40 border border-white/5 backdrop-blur-3xl animate-in slide-in-from-bottom-10 duration-700">
+            <div class="flex items-center justify-between mb-10">
+                <div>
+                    <h3 class="text-3xl font-black tracking-tight">Reassignment <span class="text-emerald-400">Impact Analysis</span></h3>
+                    <p id="reassign-summary" class="text-slate-400 text-sm mt-2">Analyzing shifts in the scheduling matrix...</p>
+                </div>
+                <div class="bg-emerald-500/10 px-4 py-2 rounded-2xl border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-widest" id="reassign-stats">
+                    1 Candidate Affected
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <!-- Removed Slot -->
+                <div class="space-y-4">
+                    <p class="text-[10px] text-rose-400 font-bold uppercase tracking-[0.2em] ml-2">Removed Assignment</p>
+                    <div id="diff-removed" class="p-6 rounded-3xl bg-rose-500/5 border border-rose-500/20 opacity-60 grayscale-[0.5]">
+                        <!-- Removed Card Here -->
+                    </div>
+                </div>
+                
+                <!-- New Slot -->
+                <div class="space-y-4">
+                    <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-[0.2em] ml-2">Optimized Placement</p>
+                    <div id="diff-added" class="p-6 rounded-3xl bg-emerald-500/5 border border-emerald-500/20 shadow-2xl shadow-emerald-500/10">
+                        <!-- Added Card Here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-10 p-6 bg-white/5 rounded-2xl border border-white/5">
+                <p class="text-xs text-slate-400 leading-relaxed italic" id="reassign-impact-text">
+                    <!-- Impact analysis here -->
+                </p>
+            </div>
+        </section>
+
         <div id="assignment-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             <!-- Dynamic Cards Injected Here -->
         </div>
@@ -207,6 +244,77 @@
             list.appendChild(div);
         }
 
+        function renderAssignments(assignments) {
+            const grid = document.getElementById('assignment-grid');
+            const timeline = document.getElementById('timeline-summary');
+            grid.innerHTML = '';
+            
+            // Render Timeline
+            timeline.innerHTML = '';
+            const daysInvolved = [...new Set(assignments.map(a => a.slot.day))].sort((a,b) => a.localeCompare(b));
+            daysInvolved.forEach(day => {
+                const count = assignments.filter(a => a.slot.day === day).length;
+                const pill = document.createElement('div');
+                pill.className = 'flex-shrink-0 px-6 py-3 bg-slate-800/50 rounded-2xl border border-white/5 text-sm font-bold flex flex-col items-center gap-1 min-w-[100px] group hover:border-sky-400/30 transition';
+                pill.innerHTML = `<span class="text-slate-500 group-hover:text-sky-300 text-[10px] uppercase">${day}</span><span class="text-white">${count} Interview${count > 1 ? 's' : ''}</span>`;
+                timeline.appendChild(pill);
+            });
+
+            // Render Grid
+            assignments.forEach((a, index) => {
+                const scoreColor = a.score > 2000 ? 'text-emerald-400' : (a.score > 1500 ? 'text-sky-400' : 'text-amber-400');
+                const borderColor = a.score > 2000 ? 'border-emerald-500/30' : (a.score > 1500 ? 'border-sky-500/30' : 'border-amber-500/30');
+
+                const card = document.createElement('div');
+                card.className = `glass-card rounded-[2rem] p-8 border ${borderColor} group hover:scale-[1.02] transition-all duration-300 relative overflow-hidden`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-8">
+                        <span class="text-[10px] font-black uppercase tracking-[0.25em] ${scoreColor} bg-white/5 px-3 py-1.5 rounded-full">Score rank: ${a.score}</span>
+                        <button onclick="copyEmail(${index}, this)" title="Copy Recruiter Email" class="text-slate-500 hover:text-white p-2 bg-white/5 rounded-xl transition tooltip-parent">
+                            <i class="fas fa-envelope-open-text"></i>
+                        </button>
+                    </div>
+
+                    <h4 class="text-2xl font-extrabold mb-2">${a.candidate}</h4>
+                    <div class="flex items-center gap-2 text-slate-400 text-sm mb-8">
+                         <div class="w-2 h-2 rounded-full bg-sky-400"></div>
+                         <span>Confirmed with <strong>${a.interviewer}</strong></span>
+                    </div>
+                    
+                    <div class="bg-white/5 rounded-3xl p-5 mb-8 flex items-center gap-5 border border-white/5">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-300 text-xl">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-[11px] text-slate-500 uppercase font-black tracking-widest leading-none mb-1">${a.slot.day} ${a.slot.date || ''}</p>
+                            <p class="text-lg font-bold text-white">${a.slot.time}</p>
+                        </div>
+                    </div>
+
+                    ${a.alternatives.length > 0 ? `
+                    <div class="mb-8">
+                        <p class="text-[10px] text-slate-500 uppercase font-black mb-3">Backup Slots</p>
+                        <div class="flex flex-wrap gap-2">
+                            ${a.alternatives.map(alt => `<span class="text-[10px] bg-white/5 text-slate-400 px-3 py-1.5 rounded-xl border border-white/5">${alt.time}</span>`).join('')}
+                        </div>
+                    </div>` : ''}
+
+                    <div class="flex items-center justify-between mt-8">
+                         <div class="bg-slate-900/40 rounded-2xl p-5 border border-white/5 relative flex-1">
+                            <i class="fas fa-quote-left absolute -top-2 left-4 text-sky-500/20 text-3xl"></i>
+                            <p class="text-xs text-slate-300/90 leading-relaxed italic z-10 relative">
+                                ${a.reasoning}
+                            </p>
+                        </div>
+                        <button onclick="reassignCandidate('${a.candidate}')" class="ml-4 p-4 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs transition border border-rose-500/10 group" title="Cancel and Find New Slot">
+                            <i class="fas fa-arrows-rotate group-hover:rotate-180 transition-transform duration-500"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
         async function generateSchedule() {
             const overlay = document.getElementById('loading-overlay');
             const submitBtn = document.getElementById('submit-btn');
@@ -246,68 +354,11 @@
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.detail);
 
-                // 2. RENDER TIMELINE PILLS
-                timeline.innerHTML = '';
-                const daysInvolved = [...new Set(data.assignments.map(a => a.slot.day))].sort((a,b) => a.localeCompare(b));
-                daysInvolved.forEach(day => {
-                    const count = data.assignments.filter(a => a.slot.day === day).length;
-                    const pill = document.createElement('div');
-                    pill.className = 'flex-shrink-0 px-6 py-3 bg-slate-800/50 rounded-2xl border border-white/5 text-sm font-bold flex flex-col items-center gap-1 min-w-[100px] group hover:border-sky-400/30 transition';
-                    pill.innerHTML = `<span class="text-slate-500 group-hover:text-sky-300 text-[10px] uppercase">${day}</span><span class="text-white">${count} Interview${count > 1 ? 's' : ''}</span>`;
-                    timeline.appendChild(pill);
-                });
+                // 2. RENDER RESULTS
+                window.lastResults = data.assignments;
+                renderAssignments(data.assignments);
 
-                grid.innerHTML = '';
-                window.lastResults = data.assignments; 
-                data.assignments.forEach((a, index) => {
-                    const scoreColor = a.score > 2000 ? 'text-emerald-400' : (a.score > 1500 ? 'text-sky-400' : 'text-amber-400');
-                    const borderColor = a.score > 2000 ? 'border-emerald-500/30' : (a.score > 1500 ? 'border-sky-500/30' : 'border-amber-500/30');
-
-                    const card = document.createElement('div');
-                    card.className = `glass-card rounded-[2rem] p-8 border ${borderColor} group hover:scale-[1.02] transition-all duration-300 relative overflow-hidden`;
-                    card.innerHTML = `
-                        <div class="flex justify-between items-start mb-8">
-                            <span class="text-[10px] font-black uppercase tracking-[0.25em] ${scoreColor} bg-white/5 px-3 py-1.5 rounded-full">Score rank: ${a.score}</span>
-                            <button onclick="copyEmail(${index}, this)" title="Copy Recruiter Email" class="text-slate-500 hover:text-white p-2 bg-white/5 rounded-xl transition tooltip-parent">
-                                <i class="fas fa-envelope-open-text"></i>
-                            </button>
-                        </div>
-
-                        <h4 class="text-2xl font-extrabold mb-2">${a.candidate}</h4>
-                        <div class="flex items-center gap-2 text-slate-400 text-sm mb-8">
-                             <div class="w-2 h-2 rounded-full bg-sky-400"></div>
-                             <span>Confirmed with <strong>${a.interviewer}</strong></span>
-                        </div>
-                        
-                        <div class="bg-white/5 rounded-3xl p-5 mb-8 flex items-center gap-5 border border-white/5">
-                            <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-300 text-xl">
-                                <i class="fas fa-calendar-check"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-[11px] text-slate-500 uppercase font-black tracking-widest leading-none mb-1">${a.slot.day} ${a.slot.date || ''}</p>
-                                <p class="text-lg font-bold text-white">${a.slot.time}</p>
-                            </div>
-                        </div>
-
-                        ${a.alternatives.length > 0 ? `
-                        <div class="mb-8">
-                            <p class="text-[10px] text-slate-500 uppercase font-black mb-3">Backup Slots</p>
-                            <div class="flex flex-wrap gap-2">
-                                ${a.alternatives.map(alt => `<span class="text-[10px] bg-white/5 text-slate-400 px-3 py-1.5 rounded-xl border border-white/5">${alt.time}</span>`).join('')}
-                            </div>
-                        </div>` : ''}
-
-                        <div class="bg-slate-900/40 rounded-2xl p-5 border border-white/5 relative">
-                            <i class="fas fa-quote-left absolute -top-2 left-4 text-sky-500/20 text-3xl"></i>
-                            <p class="text-xs text-slate-300/90 leading-relaxed italic z-10 relative">
-                                ${a.reasoning}
-                            </p>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-
-                // 4. CONFLICTS (Improved resolution box)
+                // 3. CONFLICTS (Improved resolution box)
                 const conflictBox = document.getElementById('conflict-box');
                 const conflictContent = document.getElementById('conflict-content');
                 if (data.unassigned.length > 0) {
@@ -326,7 +377,7 @@
                             <div>
                                 <p class="text-[10px] text-emerald-300/50 uppercase font-black mb-4 tracking-[0.2em]">Resolution Playbook</p>
                                 <div class="p-6 bg-slate-950/40 rounded-3xl border border-emerald-500/10 backdrop-blur-md">
-                                    <p class="text-sm text-slate-300 leading-relaxed">${data.conflict_resolution.replace(/\n/g, '<br>')}</p>
+                                    <p class="text-sm text-slate-300 leading-relaxed">${data.conflict_resolution ? data.conflict_resolution.replace(/\n/g, '<br>') : 'N/A'}</p>
                                 </div>
                             </div>
                          </div>
@@ -343,6 +394,79 @@
             } finally {
                 overlay.classList.add('hidden');
                 submitBtn.disabled = false;
+            }
+        }
+
+        async function reassignCandidate(candidateName) {
+            const overlay = document.getElementById('loading-overlay');
+            const reassignArea = document.getElementById('reassign-area');
+            const diffRemoved = document.getElementById('diff-removed');
+            const diffAdded = document.getElementById('diff-added');
+            
+            const candidates = Array.from(document.querySelectorAll('.candidate-entry')).map(el => ({
+                name: el.querySelectorAll('input')[0].value.trim(),
+                availability: el.querySelectorAll('input')[1].value.trim(),
+            })).filter(c => c.name && c.availability);
+
+            const interviewers = Array.from(document.querySelectorAll('.interviewer-entry')).map(el => ({
+                name: el.querySelectorAll('input')[0].value.trim(),
+                availability: el.querySelectorAll('input')[1].value.trim(),
+            })).filter(i => i.name && i.availability);
+
+            const duration = parseInt(document.getElementById('duration').value);
+
+            try {
+                overlay.classList.remove('hidden');
+                const oldAssignment = window.lastResults.find(a => a.candidate === candidateName);
+
+                const response = await fetch('/api/reassign', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        cancelled_candidate_name: candidateName,
+                        current_assignments: window.lastResults,
+                        candidates,
+                        interviewers,
+                        duration
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail);
+
+                // Find the new assignment for this specific candidate
+                const newAssignment = data.new_assignments.find(a => a.candidate === candidateName);
+
+                reassignArea.classList.remove('hidden');
+                document.getElementById('reassign-summary').innerText = data.changes_summary;
+                document.getElementById('reassign-impact-text').innerText = data.impact_analysis;
+                document.getElementById('reassign-stats').innerText = `${data.affected_candidates.length} Candidate Affected`;
+
+                diffRemoved.innerHTML = `
+                    <p class="text-sm font-black mb-2">${oldAssignment.candidate}</p>
+                    <p class="text-[11px] text-slate-500 uppercase font-black">${oldAssignment.interviewer}</p>
+                    <p class="text-xs text-rose-300 font-bold mt-2">${oldAssignment.slot.day} ${oldAssignment.slot.time}</p>
+                `;
+                
+                if (newAssignment) {
+                    diffAdded.innerHTML = `
+                        <p class="text-sm font-black mb-2 text-emerald-400">${newAssignment.candidate}</p>
+                        <p class="text-[11px] text-emerald-300/50 uppercase font-black">${newAssignment.interviewer}</p>
+                        <p class="text-xs text-emerald-400 font-bold mt-2">${newAssignment.slot.day} ${newAssignment.slot.time}</p>
+                        <p class="text-[10px] text-emerald-300/40 mt-3 italic">Prioritized re-optimization (Score: ${newAssignment.score})</p>
+                    `;
+                } else {
+                    diffAdded.innerHTML = `<p class="text-xs text-rose-400">Impasse reached: No new slots found without disrupting others.</p>`;
+                }
+
+                window.lastResults = data.new_assignments;
+                renderAssignments(data.new_assignments);
+                reassignArea.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (err) {
+                alert("❌ Reassignment Snag: " + err.message);
+            } finally {
+                overlay.classList.add('hidden');
             }
         }
 
