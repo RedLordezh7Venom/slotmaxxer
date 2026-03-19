@@ -202,6 +202,44 @@ def expand_recurring_availability(slots: List[TimeSlot], weeks: int = 4) -> List
     return expanded_slots
 
 
+
+def generate_email_template(candidate_name: str, interviewer_name: str, slot_text: str, reasoning: str, alternatives: list = None) -> str:
+    """
+    Generates a professional, recruiter-ready email invitation for the candidate.
+    """
+    alt_text = ""
+    if alternatives:
+        alt_text = "\n\nIf this time doesn't work, we have these backup options:\n" + \
+                   "\n".join([f"- {a}" for a in alternatives])
+
+    template = f"""
+Subject: Interview Invitation: [SlotMaxxer] {candidate_name} x {interviewer_name}
+
+Hi {candidate_name},
+
+Great news! We've optimized our panel's availability and would like to invite you for an interview with {interviewer_name}.
+
+📅 Confirmed Time: {slot_text}
+
+---
+💡 Why this slot was chosen:
+"{reasoning}"
+---
+{alt_text}
+
+📍 Calendar Invite Details:
+Summary: Interview with {interviewer_name}
+Time: {slot_text}
+Platform: Video Link to follow
+
+Please confirm if this works for you!
+
+Best regards,
+SlotMaxxer Scheduling Team
+    """
+    return template.strip()
+
+
 if __name__ == "__main__":
     # Small test loop for manual verification
     tests = [

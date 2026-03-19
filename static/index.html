@@ -257,22 +257,19 @@
                     timeline.appendChild(pill);
                 });
 
-                // 3. RENDER ASSIGNMENT CARDS
                 grid.innerHTML = '';
-                data.assignments.forEach(a => {
-                    // Color coding score
+                window.lastResults = data.assignments; 
+                data.assignments.forEach((a, index) => {
                     const scoreColor = a.score > 2000 ? 'text-emerald-400' : (a.score > 1500 ? 'text-sky-400' : 'text-amber-400');
                     const borderColor = a.score > 2000 ? 'border-emerald-500/30' : (a.score > 1500 ? 'border-sky-500/30' : 'border-amber-500/30');
-
-                    const inviteText = `Hi ${a.candidate},\nWe've scheduled your interview with ${a.interviewer} for ${a.slot.day} at ${a.slot.time}.\nReasoning: ${a.reasoning}\nSee you then!`;
 
                     const card = document.createElement('div');
                     card.className = `glass-card rounded-[2rem] p-8 border ${borderColor} group hover:scale-[1.02] transition-all duration-300 relative overflow-hidden`;
                     card.innerHTML = `
                         <div class="flex justify-between items-start mb-8">
                             <span class="text-[10px] font-black uppercase tracking-[0.25em] ${scoreColor} bg-white/5 px-3 py-1.5 rounded-full">Score rank: ${a.score}</span>
-                            <button onclick="copyToClipboard('${btoa(inviteText)}', this)" class="text-slate-500 hover:text-white p-2 bg-white/5 rounded-xl transition tooltip-parent">
-                                <i class="fas fa-copy"></i>
+                            <button onclick="copyEmail(${index}, this)" title="Copy Recruiter Email" class="text-slate-500 hover:text-white p-2 bg-white/5 rounded-xl transition tooltip-parent">
+                                <i class="fas fa-envelope-open-text"></i>
                             </button>
                         </div>
 
@@ -349,9 +346,10 @@
             }
         }
 
-        function copyToClipboard(base64Text, btn) {
-            const text = atob(base64Text);
-            navigator.clipboard.writeText(text).then(() => {
+        function copyEmail(index, btn) {
+            const assignment = window.lastResults[index];
+            if (!assignment) return;
+            navigator.clipboard.writeText(assignment.email_template).then(() => {
                  const originalHTML = btn.innerHTML;
                  btn.innerHTML = '<i class="fas fa-check text-emerald-400"></i>';
                  setTimeout(() => btn.innerHTML = originalHTML, 2000);

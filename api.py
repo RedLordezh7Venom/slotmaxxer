@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from models import Candidate, Interviewer, Assignment, TimeSlot
 from ai_processor import parse_availability_with_ai, generate_assignment_reasoning, resolve_conflicts_with_ai
-from utils import expand_recurring_availability
+from utils import expand_recurring_availability, generate_email_template
 from scheduler_engine import generate_feasible_assignments, calculate_quality_score, optimal_assign
 
 # Setup Logging
@@ -83,6 +83,7 @@ class AssignmentResponse(BaseModel):
     score: int
     reasoning: str
     alternatives: List[ScheduledSlot]
+    email_template: str
 
 class ScheduleResponse(BaseModel):
     success: bool
@@ -282,7 +283,14 @@ async def schedule_interviews(req: ScheduleRequest):
                 slot=format_slot(a.slot),
                 score=a.quality_score,
                 reasoning=ai_reasoning,
-                alternatives=[format_slot(alt) for alt in a.alternatives]
+                alternatives=[format_slot(alt) for alt in a.alternatives],
+                email_template=generate_email_template(
+                    candidate_name=cand.name,
+                    interviewer_name=intv.name,
+                    slot_text=f"{a.slot.day.value} {a.slot.start_time.strftime('%H:%M')}",
+                    reasoning=ai_reasoning,
+                    alternatives=[f"{alt.day.value} {alt.start_time.strftime('%H:%M')}" for alt in a.alternatives]
+                )
             ))
 
         # 6. Conflict Resolution for Unassigned
