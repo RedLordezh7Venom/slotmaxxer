@@ -96,6 +96,48 @@ def parse_availability_with_ai(text: str) -> List[TimeSlot]:
         return parse_time_string(text)
 
 
+def generate_assignment_reasoning(
+    candidate_name: str,
+    interviewer_name: str,
+    slot: TimeSlot,
+    score: int,
+    is_preferred: bool = False
+) -> str:
+    """
+    Generates a natural language explanation for why a specific slot was chosen.
+    """
+    if not client:
+        return f"Matched based on overall quality score ({score}) and mutual availability."
+
+    try:
+        prompt = f"""
+        Explain why {candidate_name} was scheduled with {interviewer_name} 
+        at {slot.day.value} {slot.start_time.strftime('%H:%M')}.
+        Context:
+        - Quality Score: {score}
+        - Matches Candidate Preference: {is_preferred}
+        - Constraints: { 'High priority' if score > 2000 else 'System-optimized' }
+        
+        Rules: Max 2-3 sentences. Enthusiastic but professional.
+        """
+        
+        response = client.chat.completions.create(
+            model="llama3-70b-8192",
+            messages=[
+                {"role": "system", "content": "You provide short, helpful interview scheduling justifications."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=150
+        )
+        
+        return response.choices[0].message.content.strip()
+
+    except Exception as e:
+        logger.error(f"Reasoning Gen Error: {e}")
+        return f"Optimal assignment considering both preference and resource scarcity (Score: {score})."
+
+
 if __name__ == "__main__":
     # Test cases
     test_input = "Tue and Thu from 2 to 5 PM, but I prefer Thursday afternoon"
