@@ -60,6 +60,23 @@ class TimeSlot:
             return False
         return self.start_time <= other.start_time and self.end_time >= other.end_time
 
+    def intersection(self, other: 'TimeSlot') -> Optional['TimeSlot']:
+        """Calculates the intersection with another TimeSlot. Returns None if no overlap."""
+        if not self.overlaps_with(other):
+            return None
+            
+        start = max(self.start_time, other.start_time)
+        end = min(self.end_time, other.end_time)
+        
+        return TimeSlot(
+            day=self.day,
+            start_time=start,
+            end_time=end,
+            is_recurring=self.is_recurring and other.is_recurring,
+            # Merge preference but favor higher for the triplet scoring later
+            preference_level=self.preference_level 
+        )
+
     def __repr__(self) -> str:
         recurring_suffix = " (R)" if self.is_recurring else ""
         return (
