@@ -138,6 +138,62 @@ def generate_assignment_reasoning(
         return f"Optimal assignment considering both preference and resource scarcity (Score: {score})."
 
 
+def resolve_conflicts_with_ai(
+    unassigned: List[Candidate],
+    assignments: List[Assignment],
+    feasible_matrix: List[tuple]
+) -> str:
+    """
+    Analyzes the scheduling impasse and suggests strategic fixes (swaps, expansions).
+    """
+    if not unassigned:
+        return "No conflicts detected. All candidates successfully assigned."
+
+    # Build a condensed representation of the conflict for the AI
+    conflict_report = []
+    for c in unassigned:
+        # Find all the 'what-could-have-been' slots for this candidate
+        potentials = [f"{t[2].name} at {t[1]}" for t in feasible_matrix if t[0].id == c.id]
+        conflict_report.append(f"Candidate {c.name} had {len(potentials)} potential slots, but all were blocked by existing assignments.")
+
+    if not client:
+        return (
+            "Conflict detected: Interviewer capacity reached or slots double-booked. \n"
+            "Fallback Recommendation: Add more availability for high-demand interviewers or "
+            "request additional time windows from unassigned candidates."
+        )
+
+    try:
+        prompt = f"""
+        Analyze the following scheduling impasse for SlotMaxxer:
+        
+        Unassigned Status:
+        {chr(10).join(conflict_report)}
+        
+        Successful Assignments:
+        {chr(10).join([f"{a.candidate_id} matched with {a.interviewer_id}" for a in assignments])}
+        
+        Task: Provide 3 prioritized action items (swaps, availability requests, or window expansions).
+        Rules: Professional tone. Max 4 sentences. Bullet points.
+        """
+        
+        response = client.chat.completions.create(
+            model="llama3-70b-8192",
+            messages=[
+                {"role": "system", "content": "You are a master logistics optimizer for hiring teams."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.5,
+            max_tokens=250
+        )
+        
+        return response.choices[0].message.content.strip()
+
+    except Exception as e:
+        logger.error(f"Conflict Resolution Error: {e}")
+        return "Critical conflict detected. Recommendation: Request additional availability slots from unassigned candidates or substitute interviewers."
+
+
 if __name__ == "__main__":
     # Test cases
     test_input = "Tue and Thu from 2 to 5 PM, but I prefer Thursday afternoon"
