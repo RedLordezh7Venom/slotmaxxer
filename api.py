@@ -1,15 +1,34 @@
 import uuid
+import logging
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 
 from models import Candidate, Interviewer, Assignment, TimeSlot
 from ai_processor import parse_availability_with_ai, generate_assignment_reasoning, resolve_conflicts_with_ai
 from utils import expand_recurring_availability
 from scheduler_engine import generate_feasible_assignments, calculate_quality_score, optimal_assign
 
+# Setup Logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler()]
+)
+logger = logging.getLogger("slotmaxxer-api")
+
 app = FastAPI(title="SlotMaxxer API")
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logger.error(f"Validation Error: {exc.errors()}")
+    return JSONResponse(
+        status_code=422,
+        content={"success": False, "detail": "Invalid input format. Please check your data fields.", "errors": exc.errors()},
+    )
 
 # Enable CORS for frontend integration
 app.add_middleware(
@@ -175,7 +194,16 @@ async def reassign_candidate(req: ReassignRequest):
 
 @app.post("/api/schedule", response_model=ScheduleResponse)
 async def schedule_interviews(req: ScheduleRequest):
+    logger.info(f"Received schedule request for {len(req.candidates)} candidates and {len(req.interviewers)} interviewers.")
     try:
+        # --- Input Sanitization & Validation ---
+        if not req.candidates:
+            raise HTTPException(status_code=400, detail="At least one candidate is required for scheduling.")
+        if not req.interviewers:
+            raise HTTPException(status_code=400, detail="At least one interviewer is required.")
+        if req.duration < 15 or req.duration > 240:
+            raise HTTPException(status_code=400, detail="Invalid interview duration (Must be 15-240 minutes).")
+
         # 1. Parse Inputs (Natural Language -> Structured Models)
         internal_candidates = []
         for c in req.candidates:
