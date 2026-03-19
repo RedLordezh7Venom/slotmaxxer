@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import time, timedelta
+from datetime import time, timedelta, date
 from enum import Enum
 from typing import List, Optional
 
@@ -28,6 +28,7 @@ class TimeSlot:
     day: DayOfWeek
     start_time: time
     end_time: time
+    date: Optional[date] = None
     is_recurring: bool = False
     preference_level: PreferenceLevel = PreferenceLevel.MEDIUM
 
