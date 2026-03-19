@@ -1,6 +1,63 @@
-from datetime import datetime, date, timedelta
 from typing import List, Tuple, Optional
-from models import Candidate, Interviewer, TimeSlot
+from models import Candidate, Interviewer, TimeSlot, Assignment
+from datetime import datetime, date, timedelta, time
+
+# Scoring Weights
+PREF_CANDIDATE_WEIGHT = 1000
+PREF_INTERVIEWER_WEIGHT = 500
+TIME_OPTIMALITY_HIGH_WEIGHT = 200  # 10 AM - 2 PM
+TIME_OPTIMALITY_MEDIUM_WEIGHT = 100 # 9 AM - 4 PM
+DURATION_BONUS_WEIGHT = 100         # >= 60 min
+SCARCITY_BASE = 1000                # Scarcity = SCARCITY_BASE / interviewer_slot_count
+
+
+def calculate_quality_score(
+    candidate: Candidate,
+    slot: TimeSlot,
+    interviewer: Interviewer,
+    interviewer_total_slots: int
+) -> int:
+    """
+    Calculates the multi-factor quality score for a potential assignment triplet.
+    
+    Weights (as per PRD):
+    - Candidate preferences: 1000 pts
+    - Interviewer preferences: 500 pts
+    - Time optimality (10am-2pm): 200 pts
+    - Duration bonus (>= 60m): 100 pts
+    - Scarcity Multiplier: 1000 / total_interviewer_slots
+    """
+    score = 0
+
+    # 1. Candidate Preference Match
+    # Check if the proposed slot is within any of the candidate's preferred slots
+    if any(pref.contains(slot) for pref in candidate.preferred_slots):
+        score += PREF_CANDIDATE_WEIGHT
+
+    # 2. Interviewer Preference Match
+    if any(pref.contains(slot) for pref in interviewer.preferred_slots):
+        score += PREF_INTERVIEWER_WEIGHT
+
+    # 3. Time Optimality
+    start, end = slot.start_time, slot.end_time
+    # High: 10 AM - 2 PM
+    if start >= time(10, 0) and end <= time(14, 0):
+        score += TIME_OPTIMALITY_HIGH_WEIGHT
+    # Medium: 9 AM - 4 PM
+    elif start >= time(9, 0) and end <= time(16, 0):
+        score += TIME_OPTIMALITY_MEDIUM_WEIGHT
+
+    # 4. Duration Bonus (PRD specifies >= 60min)
+    if slot.duration_minutes >= 60:
+        score += DURATION_BONUS_WEIGHT
+
+    # 5. Scarcity Multiplier
+    # Prioritizes interviewers with limited availability to prevent burnout 
+    # of high-availability interviewers and ensure efficient resource use.
+    if interviewer_total_slots > 0:
+        score += int(SCARCITY_BASE / interviewer_total_slots)
+
+    return score
 
 
 def generate_feasible_assignments(
@@ -100,20 +157,121 @@ def get_slots_within_window(
     return slots
 
 
+def optimal_assign(
+    scored_triplets: List[Tuple[Candidate, TimeSlot, Interviewer, int]],
+    candidates: List[Candidate]
+) -> Tuple[List[Assignment], List[Candidate]]:
+    """
+    Greedily assigns candidates to slots based on global quality scores.
+    Handles conflict detection (interviewer double-booking) and recovers 
+    alternative slots for each candidate.
+
+    Algorithm complexity: O(T log T) for sorting + O(T * A) for assignment 
+    where T is number of triplets and A is number of assignments. 
+    With ~1000 triplets, this is near-instant.
+    """
+    # 1. Sort all possible combinations by score (highest first)
+    scored_triplets.sort(key=lambda x: x[3], reverse=True)
+
+    assignments = []
+    assigned_candidate_ids = set()
+    
+    # Track interviewer busy times [interviewer_id -> List[TimeSlot]]
+    interviewer_schedule = {}
+
+    # 2. Primary Assignment Pass
+    for candidate, slot, interviewer, score in scored_triplets:
+        if candidate.id in assigned_candidate_ids:
+            continue
+
+        # Check for interviewer conflicts
+        busy_slots = interviewer_schedule.get(interviewer.id, [])
+        if any(slot.overlaps_with(busy) for busy in busy_slots):
+            continue
+
+        # Valid assignment found
+        new_assignment = Assignment(
+            candidate_id=candidate.id,
+            interviewer_id=interviewer.id,
+            slot=slot,
+            quality_score=score,
+            reasoning=f"High-quality match ({score} pts) based on preference and capacity logic."
+        )
+        
+        assignments.append(new_assignment)
+        assigned_candidate_ids.add(candidate.id)
+        
+        # Mark interviewer as busy
+        if interviewer.id not in interviewer_schedule:
+            interviewer_schedule[interviewer.id] = []
+        interviewer_schedule[interviewer.id].append(slot)
+
+    # 3. Alternatives & Unassigned Handling
+    final_assignments = []
+    for assignment in assignments:
+        # Find top 3 alternative slots for this candidate that don't conflict 
+        # with the *final* schedule of the chosen or other interviewers.
+        alts = []
+        for c, s, i, score in scored_triplets:
+            if c.id == assignment.candidate_id and s != assignment.slot:
+                # Check if interviewer i is free at slot s in the final schedule
+                busy = interviewer_schedule.get(i.id, [])
+                # Exclude the current assignment itself from the conflict check for THIS interviewer
+                other_busy = [b for b in busy if b != assignment.slot]
+                if not any(s.overlaps_with(b) for b in other_busy):
+                    alts.append(s)
+            if len(alts) >= 3:
+                break
+        
+        assignment.alternatives = alts
+        final_assignments.append(assignment)
+
+    # 4. Identify unassigned candidates
+    unassigned = [c for c in candidates if c.id not in assigned_candidate_ids]
+
+    return final_assignments, unassigned
+
+
 if __name__ == "__main__":
-    # Small test
+    # Full logical flow test
     from datetime import time
     from models import DayOfWeek
     
-    print("Testing feasibility matrix generation...")
-    c = Candidate("C1", "Jane", "jane@test.com", availability=[
+    print("Testing Full Scheduler Flow...")
+    
+    # Setup: 2 candidates competing for the same interviewer prime time
+    c1 = Candidate("C1", "Jane", "jane@test.com", availability=[
         TimeSlot(DayOfWeek.MONDAY, time(9, 0), time(12, 0))
-    ])
-    i = Interviewer("I1", "Boss", availability=[
-        TimeSlot(DayOfWeek.MONDAY, time(11, 0), time(14, 0))
+    ], preferred_slots=[
+        TimeSlot(DayOfWeek.MONDAY, time(10, 0), time(11, 0))
     ])
     
-    triplets = generate_feasible_assignments([c], [i], required_duration=60)
-    print(f"Generated {len(triplets)} triplets for 1-hour overlap")
-    for _, slot, _ in triplets:
-        print(f" - Segment: {slot.start_time.strftime('%H:%M')} to {slot.end_time.strftime('%H:%M')}")
+    c2 = Candidate("C John", "John", "john@test.com", availability=[
+        TimeSlot(DayOfWeek.MONDAY, time(9, 0), time(12, 0))
+    ])
+    
+    i1 = Interviewer("I1", "Engineering Manager", availability=[
+        TimeSlot(DayOfWeek.MONDAY, time(10, 0), time(14, 0))
+    ])
+    
+    # 1. Feasibility Matrix
+    triplets = generate_feasible_assignments([c1, c2], [i1])
+    
+    # 2. Scoring
+    scored = []
+    for c, s, i in triplets:
+        score = calculate_quality_score(c, s, i, len(i.availability))
+        scored.append((c, s, i, score))
+        
+    # 3. Optimal Assignment
+    final, unassigned = optimal_assign(scored, [c1, c2])
+    
+    print(f"Successfully generated {len(final)} assignments.")
+    for a in final:
+        print(f"Candidate: {a.candidate_id} -> Interviewer: {a.interviewer_id}")
+        print(f" - Slot: {a.slot.start_time.strftime('%H:%M')} to {a.slot.end_time.strftime('%H:%M')}")
+        print(f" - Quality Score: {a.quality_score}")
+        print(f" - Alternatives: {len(a.alternatives)} found\n")
+        
+    if unassigned:
+        print(f"Unassigned Candidates: {[c.id for c in unassigned]}")
