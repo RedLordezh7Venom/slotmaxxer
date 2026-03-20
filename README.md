@@ -23,18 +23,18 @@
 
 Recruiters spend **~3 hours weekly** manually cross-referencing natural language emails like *"Free Tue-Thu but prefer afternoons"* against panel availability. This leads to burnout, double-bookings, and "suboptimal" slots that frustrate busy interviewers.
 
-**SlotMaxxer** solves this by combining **Greedy Optimization Algorithms** with **LLM-driven Natural Language Understanding**.
+**SlotMaxxer** solves this by combining a globally optimal **Hungarian Assignment Algorithm** with **Deterministic & AI-Fallback Natural Language Understanding**.
 
 ---
 
 ### 🔥 Feature Highlights
 
-- **🧠 Deep NLU Parsing**: Paste raw, messy availability text—SlotMaxxer extracts structured JSON time-windows instantly via Groq/Llama-3.
-- **⚡ Greedy Optimization**: A multi-factor constraint-satisfaction engine that maximizes "Quality Scores" across candidates and panelists.
-- **🔄 Live Visual Diff**: Cancel an interview? See a side-by-side comparison of how the system re-optimizes the grid in real-time.
+- **🎯 Deterministic Parsing**: 90% of availability is parsed via high-performance regex rules. Groq/Llama-3 acts as an intelligent fallback for complex natural language, ensuring speed and sub-second reliability.
+- **🏛️ Hungarian Optimization**: Uses `scipy.optimize` to solve the assignment problem globally. Guarantees the absolute maximum "Total Quality Score" across the entire panel (no more "first-come, first-served" bias).
+- **📉 Intelligent Scarcity**: Automatically protects busy executives and scarce interviewers by prioritizing their limited slots for the most critical candidates first.
+- **🔄 Live Visual Diff**: Cancel an interview? See a side-by-side comparison of how the system re-optimizes the entire grid in real-time.
 - **📧 Pro-Grade Communication**: Automatic generation of personalized, reasoning-focused interview invitations with one-click copy.
 - **📊 Timeline Strategy**: Horizontally scrolling density maps that reveal scheduling hotspots before they become bottlenecks.
-- **💎 Glassmorphism UI**: A premium, recruiter-first dashboard designed for high-focus coordination.
 
 ---
 
@@ -42,11 +42,14 @@ Recruiters spend **~3 hours weekly** manually cross-referencing natural language
 
 ```mermaid
 graph TD
-    A[Recruiter Input] -->|Raw Text| B(Groq AI Parser)
-    B -->|Structured Slots| C{Optimal Engine}
-    C -->|Score Weighting| D[Final Schedule Grid]
-    D -->|AI Reasoning| E[Decision Dashboard]
-    E -->|One-Click| F[Professional Invitation]
+    A[Recruiter Input] -->|Raw Text| B{Deterministic Parser}
+    B -->|Fallback| C(Groq AI NLU)
+    B -->|Structured Slots| D[NxM Cost Matrix]
+    C -->|Structured Slots| D
+    D -->|Hungarian Solve| E(Global Optimization)
+    E -->|Iterative Conflict Resolution| F[Final Schedule Grid]
+    F -->|AI Reasoning| G[Decision Dashboard]
+    G -->|One-Click| H[Professional Invitation]
 ```
 
 ---
@@ -73,25 +76,26 @@ Head over to **[`http://localhost:8000`](http://localhost:8000)** and start "max
 
 ### 🛡️ Tech Stack
 
-SlotMaxxer is built for speed, simplicity, and zero-learning-curves:
+SlotMaxxer is built for production-grade reliability:
 
 - **Backend**: [FastAPI](https://fastapi.tiagolo.org/) (High-performance API Gateway)
-- **Intelligence**: [Groq](https://groq.com/) + Llama-3-70b (Sub-second LLM inference)
-- **Algorithm**: Pure Python (Greedy Constraint Satisfaction)
+- **Engine**: [NumPy](https://numpy.org/) + [SciPy](https://scipy.org/) (Hungarian Linear Sum Assignment)
+- **Intelligence**: [Groq](https://groq.com/) + Llama-3-70b (Sub-second LLM inference fallback)
 - **Frontend**: Tailwind CSS + FontAwesome (Modern "Glass" Aesthetic)
 
 ---
 
 ### 🔧 Configuration Weights
 
-The "Quality Score" depends on multiple factors that ensure **Recruiter Intent** is preserved:
+The "Quality Score" ensures **Global Optimization** while preserving recruiter intent:
 
 | Factor | Weight | Goal |
 | :--- | :---: | :--- |
 | **Candidate Preference** | +1000 | Ensure candidate satisfaction & higher close rates. |
 | **Interviewer Priority** | +500 | Respect busy panelist calendars. |
-| **Peak-Time Bonus** | +200 | Prioritize 10 AM - 2 PM for high energy levels. |
-| **Scarcity Multiplier** | Dynamic | Protect rare interviewers from burnout. |
+| **Peak-Time Bonus** | +500 | Prioritize 10 AM - 2 PM (Peak productivity). |
+| **Medium-Time Bonus** | +300 | Prioritize 9 AM - 4 PM. |
+| **Scarcity Multiplier** | 1000/N | Protect rare interviewers (N = total base slots). |
 
 ---
 
@@ -107,10 +111,10 @@ We love builders! If you have a smarter optimization algorithm or a cleaner UI c
 
 ### 🧪 Testing & Quality
 
-Verify the engine's reliability across 45+ comprehensive test scenarios:
+Verify the engine's reliability across 50+ comprehensive test scenarios, including the new Hungarian benchmarks:
 
 ```bash
-# Run all tests (Edge Cases, Stress, Security, Performance)
+# Run all tests (Hungarian, Edge Cases, Stress, Security, Performance)
 uv run python run_tests.py
 ```
 
