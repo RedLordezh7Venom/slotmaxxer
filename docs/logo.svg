@@ -1,0 +1,42 @@
+<svg width="500" height="500" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background Gradient -->
+    <rect id="bg" width="500" height="500" fill="#12161F"/>
+    
+    <!-- Block Gradient: Cyber-Indigo to Emerald-Green -->
+    <linearGradient id="blockGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4B0082;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#50C878;stop-opacity:0.9" />
+    </linearGradient>
+
+    <!-- Glassmorphism Filter -->
+    <filter id="glass">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="0.5" />
+    </filter>
+  </defs>
+
+  <use href="#bg"/>
+
+  <!-- Recessed Slot (Isometric) -->
+  <path d="M200 200 L300 250 L300 350 L200 300 Z" fill="#0A0D14" stroke="#1E2533" stroke-width="2"/>
+  <path d="M200 200 L300 250 L300 260 L200 210 Z" fill="#1A202E"/>
+
+  <!-- Speed Lines -->
+  <g stroke="#50C878" stroke-width="2" stroke-linecap="round" opacity="0.6">
+    <line x1="160" y1="180" x2="190" y2="195" />
+    <line x1="150" y1="195" x2="180" y2="210" />
+    <line x1="140" y1="210" x2="170" y2="225" />
+  </g>
+
+  <!-- Sliding Block (Glassmorphism) -->
+  <g filter="url(#glass)">
+    <path d="M190 190 L290 240 L290 280 L190 230 Z" fill="url(#blockGrad)" stroke="white" stroke-width="1" stroke-opacity="0.2"/>
+    <!-- Top Face of Block -->
+    <path d="M190 190 L240 215 L290 240 L240 215 Z" fill="#ffffff" fill-opacity="0.1"/>
+  </g>
+
+  <!-- Text Label -->
+  <text x="250" y="420" font-family="Arial, sans-serif" font-weight="bold" font-size="32" fill="#E0E0E0" text-anchor="middle" letter-spacing="2">
+    SLOTMAXXER
+  </text>
+</svg>

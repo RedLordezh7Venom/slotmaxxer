@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="https://img.icons8.com/clouds/200/calendar-plus.png" width="128" height="128" alt="SlotMaxxer Logo" />
+  <img src="docs/logo.svg" width="200" height="200" alt="SlotMaxxer Logo" />
 </p>
 
 <h1 align="center">⚡ SlotMaxxer</h1>
 
 <p align="center">
-  <strong>The Recruiter-Grade Optimization Engine that Turns Scheduling Chaos into Pure Logic.</strong>
+  <strong>The Recruiter-Grade Optimization Engine turns Scheduling Chaos into Pure Logic.</strong>
 </p>
 
 <p align="center">
