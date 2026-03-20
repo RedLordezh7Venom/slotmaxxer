@@ -1,0 +1,33 @@
+﻿[OK]   'Tue 2-5 PM'
+        [TUESDAY 14:00-17:00]
+[OK]   'Monday 10-11 AM'
+        [MONDAY 10:00-11:00]
+[OK]   'Mon-Wed 9 AM-5 PM'
+        [MONDAY 09:00-17:00]
+        [TUESDAY 09:00-17:00]
+        [WEDNESDAY 09:00-17:00]
+[OK]   'Tuesday afternoon'
+        [TUESDAY 12:00-17:00]
+[OK]   'Mon-Fri mornings'
+        [MONDAY 09:00-12:00]
+        [TUESDAY 09:00-12:00]
+        [WEDNESDAY 09:00-12:00]
+        [THURSDAY 09:00-12:00]
+        [FRIDAY 09:00-12:00]
+[OK]   'Every Tuesday 2-5 PM'
+        [TUESDAY 14:00-17:00 (R)]
+[OK]   'Thursday 14:00-17:00'
+        [THURSDAY 14:00-17:00]
+[OK]   'Tuesday and Thursday afternoons'
+        [TUESDAY 12:00-17:00]
+        [THURSDAY 12:00-17:00]
+[OK]   'Mon, Wed 9 AM-5 PM'
+        [MONDAY 09:00-17:00]
+        [WEDNESDAY 09:00-17:00]
+[OK]   'Tue-Thu 2-5 PM, Fri 9 AM-12 PM'
+        [TUESDAY 14:00-17:00]
+        [WEDNESDAY 14:00-17:00]
+        [THURSDAY 14:00-17:00]
+        [FRIDAY 09:00-12:00]
+
+ALL PASS

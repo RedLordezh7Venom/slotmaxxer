@@ -1,4 +1,5 @@
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
+import numpy as np
 from models import Candidate, Interviewer, TimeSlot, Assignment
 from datetime import datetime, date, timedelta, time
 
@@ -155,6 +156,100 @@ def get_slots_within_window(
             break
 
     return slots
+
+
+MAX_COST = 100_000  # Infeasibility sentinel — must exceed any real quality score
+
+
+def build_cost_matrix(
+    candidates: List[Candidate],
+    interviewers: List[Interviewer],
+    required_duration: int = 60,
+    discretization_step: int = 30,
+) -> Tuple[np.ndarray, Dict[int, Tuple[Candidate, TimeSlot, Interviewer]]]:
+    """
+    Converts the scheduling problem into an NxM cost matrix for the Hungarian algorithm.
+
+    Rows (N) = candidates
+    Cols (M) = all feasible (interviewer, slot) pairs across the whole problem
+
+    Cell value:
+        MAX_COST              → infeasible (candidate can't meet this interviewer at this time)
+        MAX_COST - quality    → feasible   (lower cost = higher quality = preferred by solver)
+
+    Args:
+        candidates:          List of Candidate objects with parsed availability.
+        interviewers:        List of Interviewer objects with parsed availability.
+        required_duration:   Minimum interview length in minutes (default 60).
+        discretization_step: Sliding-window step in minutes (default 30).
+
+    Returns:
+        cost_matrix:  np.ndarray of shape (N, M), dtype float64.
+        col_map:      {col_index: (candidate, slot, interviewer)} for feasible cells.
+                      Infeasible columns still exist in the matrix but map to nothing.
+    """
+    n_candidates = len(candidates)
+    if n_candidates == 0 or not interviewers:
+        return np.empty((0, 0)), {}
+
+    # ── Step 1: Enumerate all unique (interviewer, slot) column keys ──────────
+    # Each column represents one specific (interviewer × discretized_slot) pair.
+    # We build the column list first so every candidate row shares the same axis.
+    col_keys: List[Tuple[Interviewer, TimeSlot]] = []
+    col_key_index: Dict[Tuple[str, str], int] = {}  # (interviewer_id, slot_repr) → col idx
+
+    for interviewer in interviewers:
+        # Expand each interviewer slot into discrete interview-length segments
+        slot_segments: List[TimeSlot] = []
+        for i_slot in interviewer.availability:
+            slot_segments.extend(
+                get_slots_within_window(i_slot, required_duration, discretization_step)
+            )
+
+        for seg in slot_segments:
+            key = (interviewer.id, repr(seg))
+            if key not in col_key_index:
+                col_key_index[key] = len(col_keys)
+                col_keys.append((interviewer, seg))
+
+    n_cols = len(col_keys)
+    if n_cols == 0:
+        return np.full((n_candidates, 1), MAX_COST, dtype=np.float64), {}
+
+    # ── Step 2: Fill the cost matrix ─────────────────────────────────────────
+    cost_matrix = np.full((n_candidates, n_cols), MAX_COST, dtype=np.float64)
+    col_map: Dict[int, Tuple[Candidate, TimeSlot, Interviewer]] = {}
+
+    for r_idx, candidate in enumerate(candidates):
+        # Build a fast lookup of candidate's available windows
+        for c_slot in candidate.availability:
+            for col_idx, (interviewer, i_seg) in enumerate(col_keys):
+                # Check if candidate's slot contains this interviewer segment
+                if not c_slot.contains(i_seg) and not i_seg.contains(c_slot):
+                    # Try intersection — candidate must be available for the full segment
+                    intersection = c_slot.intersection(i_seg)
+                    if intersection is None or intersection.duration_minutes < required_duration:
+                        continue
+                    # Use the segment itself (not the intersection) as the interview slot
+                    effective_slot = i_seg
+                else:
+                    effective_slot = i_seg
+
+                # Candidate is available — compute quality and cost
+                quality = calculate_quality_score(
+                    candidate,
+                    effective_slot,
+                    interviewer,
+                    len(col_keys),  # use total columns as a proxy for interviewer density
+                )
+                cost = MAX_COST - quality
+
+                # Keep the best (lowest cost) option if multiple candidate slots overlap this column
+                if cost < cost_matrix[r_idx, col_idx]:
+                    cost_matrix[r_idx, col_idx] = cost
+                    col_map[col_idx] = (candidate, effective_slot, interviewer)
+
+    return cost_matrix, col_map
 
 
 def optimal_assign(

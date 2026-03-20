@@ -1,16 +1,17 @@
 import os
+import re
 import json
 import logging
 from dotenv import load_dotenv
+from typing import List, Optional
+from datetime import time
 
 # Load environment variables
 load_dotenv()
-from typing import List, Optional
+
 from groq import Groq
 from models import TimeSlot, DayOfWeek, PreferenceLevel, Candidate, Assignment
 from utils import parse_time_string
-import re
-from datetime import time
 
 # Setup Logging
 logging.basicConfig(level=logging.INFO)
@@ -45,7 +46,8 @@ Rules:
 6. Return ONLY a pure JSON list. No preamble or markdown blocks.
 """
 
-# ── Day helpers ────────────────────────────────────────────────────────────────
+# ── Day/keyword helpers ────────────────────────────────────────────────────────
+
 _DAY_MAP = {
     "mon": DayOfWeek.MONDAY,    "monday":    DayOfWeek.MONDAY,
     "tue": DayOfWeek.TUESDAY,   "tuesday":   DayOfWeek.TUESDAY,
@@ -70,22 +72,21 @@ _DAY_ORDER = [
     DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY,
 ]
 
+_DAY_PAT = r"(?:mon|tue|wed|thu|fri|sat|sun)\w*"
+
 
 def _norm_hour(h: int, ampm: str) -> int:
-    """Convert 12-hour to 24-hour. Digits 1-7 with no AM/PM → PM (business-hours heuristic)."""
+    """12-hour → 24-hour. Digits 1-7 with no AM/PM → PM (business heuristic)."""
     ampm = ampm.strip().upper()
     if ampm == "AM":
         return 0 if h == 12 else h
     if ampm == "PM":
         return h if h == 12 else h + 12
-    # No AM/PM — infer from value
-    if 1 <= h <= 7:
-        return h + 12
-    return h
+    return h + 12 if 1 <= h <= 7 else h
 
 
 def _day_range(start_key: str, end_key: str) -> List[DayOfWeek]:
-    """Expand 'Mon-Wed' → [MONDAY, TUESDAY, WEDNESDAY]."""
+    """'Mon' - 'Wed'  →  [MONDAY, TUESDAY, WEDNESDAY]"""
     s = _DAY_MAP.get(start_key.lower())
     e = _DAY_MAP.get(end_key.lower())
     if s is None or e is None:
@@ -101,72 +102,88 @@ def _make_slot(day: DayOfWeek, start: time, end: time, recurring: bool = False) 
         return None
 
 
+# ── DeterministicParser ────────────────────────────────────────────────────────
+
 class DeterministicParser:
     """
-    Regex-based availability parser — handles ~90% of common formats without AI.
-    Returns [] when no patterns match, so the caller can fall back to Groq.
+    Regex-based availability parser — covers ~90% of common formats without AI.
+    Returns [] when no patterns match so the caller can fall back to Groq.
 
-    Patterns handled (in priority order):
-      P4  day-range + keyword   "Mon-Fri mornings"
-      P2  day-range + times     "Mon-Wed 9 AM-5 PM"
-      P3  single-day + keyword  "Tuesday afternoon"
-      P1  single-day + times    "Tue 2-5 PM" | "Every Monday 10-11 AM"
+    Patterns (highest priority first):
+      P4  day-range + keyword      "Mon-Fri mornings"
+      P2  day-range + time range   "Mon-Wed 9 AM-5 PM"
+      P3  single-day + keyword     "Tuesday afternoon"
+      P1  single-day + time range  "Tue 2-5 PM" | "Every Monday 10-11 AM"
+
+    Pre-processing via _expand_and handles multi-day inputs joined by 'and' or commas.
     """
 
     # P1: optional "Every" + single day + time range
+    # Handles: "Tue 2-5 PM", "Mon 9 AM-5 PM", "Every Tuesday 14:00-17:00"
     _P1 = re.compile(
         r"(?:every\s+)?"
-        r"(mon|tue|wed|thu|fri|sat|sun)\w*"
+        r"(" + _DAY_PAT + r")"
         r"\s+"
         r"(\d{1,2})(?::(\d{2}))?"
-        r"(?:\s*(AM|PM))?"
+        r"\s*(AM|PM)?"          # optional AM/PM on start
         r"\s*[-–to]+\s*"
         r"(\d{1,2})(?::(\d{2}))?"
-        r"\s*(AM|PM)?",
+        r"\s*(AM|PM)?",         # optional AM/PM on end
         re.IGNORECASE,
     )
 
     # P2: day range + time range
+    # Handles: "Mon-Wed 9 AM-5 PM", "Tue-Thu 14:00-17:00"
     _P2 = re.compile(
-        r"(mon|tue|wed|thu|fri|sat|sun)\w*"
+        r"(" + _DAY_PAT + r")"
         r"\s*[-–]\s*"
-        r"(mon|tue|wed|thu|fri|sat|sun)\w*"
+        r"(" + _DAY_PAT + r")"
         r"\s+"
         r"(\d{1,2})(?::(\d{2}))?"
-        r"\s*(AM|PM)?"
+        r"\s*(AM|PM)?"          # optional AM/PM on start
         r"\s*[-–to]+\s*"
         r"(\d{1,2})(?::(\d{2}))?"
-        r"\s*(AM|PM)?",
+        r"\s*(AM|PM)?",         # optional AM/PM on end
         re.IGNORECASE,
     )
 
     # P3: single day + keyword
     _P3 = re.compile(
         r"(?:every\s+)?"
-        r"(mon|tue|wed|thu|fri|sat|sun)\w*"
-        r"\s+"
-        r"(morning|mornings|afternoon|afternoons|evening|evenings)",
+        r"(" + _DAY_PAT + r")"
+        r"\s+(morning|mornings|afternoon|afternoons|evening|evenings)",
         re.IGNORECASE,
     )
 
     # P4: day range + keyword
     _P4 = re.compile(
-        r"(mon|tue|wed|thu|fri|sat|sun)\w*"
+        r"(" + _DAY_PAT + r")"
         r"\s*[-–]\s*"
-        r"(mon|tue|wed|thu|fri|sat|sun)\w*"
-        r"\s+"
-        r"(morning|mornings|afternoon|afternoons|evening|evenings)",
+        r"(" + _DAY_PAT + r")"
+        r"\s+(morning|mornings|afternoon|afternoons|evening|evenings)",
         re.IGNORECASE,
     )
 
     @classmethod
     def parse(cls, text: str) -> List[TimeSlot]:
+        """Entry point: expand multi-day inputs, then parse each chunk."""
+        chunks = cls._expand_and(text)
+        if len(chunks) > 1:
+            result = []
+            for chunk in chunks:
+                result.extend(cls._parse_single(chunk))
+            return result
+        return cls._parse_single(text)
+
+    @classmethod
+    def _parse_single(cls, text: str) -> List[TimeSlot]:
+        """Apply patterns P4→P2→P3→P1 on a single-day-group string."""
         slots: List[TimeSlot] = []
-        used: List[tuple] = []  # track matched spans to avoid double-counting
+        used: List[tuple] = []
 
         # ── P4: day-range + keyword ──────────────────────────────────────────
         for m in cls._P4.finditer(text):
-            t_s, t_e = _KEYWORD_DEFAULTS.get(m.group(3).lower(), (time(9,0), time(17,0)))
+            t_s, t_e = _KEYWORD_DEFAULTS.get(m.group(3).lower(), (time(9, 0), time(17, 0)))
             for day in _day_range(m.group(1), m.group(2)):
                 s = _make_slot(day, t_s, t_e)
                 if s:
@@ -196,7 +213,7 @@ class DeterministicParser:
             day = _DAY_MAP.get(m.group(1).lower())
             if not day:
                 continue
-            t_s, t_e = _KEYWORD_DEFAULTS.get(m.group(2).lower(), (time(9,0), time(17,0)))
+            t_s, t_e = _KEYWORD_DEFAULTS.get(m.group(2).lower(), (time(9, 0), time(17, 0)))
             recurring = bool(re.search(r"\bevery\b", m.group(0), re.I))
             s = _make_slot(day, t_s, t_e, recurring=recurring)
             if s:
@@ -204,6 +221,7 @@ class DeterministicParser:
             used.append(m.span())
 
         # ── P1: single-day + explicit times ──────────────────────────────────
+        # Groups: (day, sh, sm, s_period, eh, em, e_period)
         for m in cls._P1.finditer(text):
             if any(m.start() >= a and m.end() <= b for a, b in used):
                 continue
@@ -211,25 +229,70 @@ class DeterministicParser:
             if not day:
                 continue
             sh, sm = int(m.group(2)), int(m.group(3) or 0)
+            sp = (m.group(4) or "").upper()
             eh, em = int(m.group(5)), int(m.group(6) or 0)
             ep = (m.group(7) or "").upper()
+            # If only end period given, apply to start too
+            if not sp and ep:
+                sp = ep
             recurring = bool(re.search(r"\bevery\b", m.group(0), re.I))
-            s = _make_slot(day, time(_norm_hour(sh, ep), sm), time(_norm_hour(eh, ep), em), recurring=recurring)
+            s = _make_slot(day, time(_norm_hour(sh, sp), sm), time(_norm_hour(eh, ep), em), recurring=recurring)
             if s:
                 slots.append(s)
             used.append(m.span())
 
         return slots
 
+    @staticmethod
+    def _expand_and(text: str) -> List[str]:
+        """
+        Tokenize multi-day availability strings into individual chunks.
+
+        'Tue and Thu afternoons'           → ['Tue afternoons', 'Thu afternoons']
+        'Mon, Wed 9 AM-5 PM'              → ['Mon 9 AM-5 PM', 'Wed 9 AM-5 PM']
+        'Tue-Thu 2-5 PM, Fri 9 AM-12 PM' → ['Tue-Thu 2-5 PM', 'Fri 9 AM-12 PM']
+        """
+        # Step 1: Replace " and " BETWEEN day tokens with ", "
+        and_re = re.compile(rf"({_DAY_PAT})\s+and\s+({_DAY_PAT})", re.IGNORECASE)
+        while True:
+            new_text = and_re.sub(r"\1, \2", text)
+            if new_text == text:
+                break
+            text = new_text
+
+        # Step 2: Split on commas followed by a letter (i.e., next day token)
+        parts = re.split(r",\s*(?=[A-Za-z])", text)
+        if len(parts) <= 1:
+            return [text]
+
+        # Step 3: Propagate suffix (time/keyword) backwards to prefix-only chunks
+        suffix_re = re.compile(r"\d|morning|afternoon|evening", re.I)
+        result = [p.strip() for p in parts]
+        pending_suffix = None
+        for i in range(len(result) - 1, -1, -1):
+            has_suffix = bool(suffix_re.search(result[i]))
+            if has_suffix:
+                day_end = re.match(
+                    rf"({_DAY_PAT}(?:\s*[-–]\s*{_DAY_PAT})?)\s+(.*)",
+                    result[i], re.I,
+                )
+                pending_suffix = (" " + day_end.group(2).strip()) if (day_end and day_end.group(2).strip()) else None
+            elif pending_suffix:
+                result[i] = result[i] + pending_suffix
+
+        return result
+
+
+# ── Public parser function ─────────────────────────────────────────────────────
 
 def parse_availability_with_ai(text: str) -> List[TimeSlot]:
     """
     Primary availability parser.
-      1. DeterministicParser  — instant, zero-cost regex (covers ~90% of inputs)
-      2. Groq AI              — only for ambiguous natural language
+      1. DeterministicParser  — instant regex, zero cost (~90% coverage)
+      2. Groq AI              — for complex natural language
       3. parse_time_string    — last-resort rule-based fallback
     """
-    # ── Step 1: Deterministic ─────────────────────────────────────────────────
+    # ── Step 1: Deterministic regex ───────────────────────────────────────────
     det_slots = DeterministicParser.parse(text)
     if det_slots:
         logger.info(f"DeterministicParser: '{text[:60]}' → {len(det_slots)} slot(s)")
@@ -241,43 +304,40 @@ def parse_availability_with_ai(text: str) -> List[TimeSlot]:
         return parse_time_string(text)
 
     try:
-        # Groq AI Parsing
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": f"Parse: {text}"}
             ],
-            temperature=0,  # Deterministic output
-            max_tokens=500
+            temperature=0,
+            max_tokens=500,
         )
 
         raw_json = response.choices[0].message.content.strip()
-        # Strip potential markdown fences
         if "```" in raw_json:
             raw_json = raw_json.split("```")[1].replace("json", "").strip()
 
         data = json.loads(raw_json)
-        
+
         parsed_slots = []
         for item in data:
             try:
                 start_h, start_m = map(int, item["start"].split(":"))
                 end_h, end_m = map(int, item["end"].split(":"))
-                
                 parsed_slots.append(
                     TimeSlot(
                         day=DayOfWeek[item["day"]],
                         start_time=time(start_h, start_m),
                         end_time=time(end_h, end_m),
                         is_recurring=item.get("is_recurring", False),
-                        preference_level=PreferenceLevel(item.get("preference", "medium"))
+                        preference_level=PreferenceLevel(item.get("preference", "medium")),
                     )
                 )
             except (ValueError, KeyError) as e:
-                logger.error(f"Failed to map AI output fragment: {item} -> {e}")
+                logger.error(f"Failed to map AI output: {item} -> {e}")
                 continue
-                
+
         return parsed_slots if parsed_slots else parse_time_string(text)
 
     except Exception as e:
@@ -290,11 +350,9 @@ def generate_assignment_reasoning(
     interviewer_name: str,
     slot: TimeSlot,
     score: int,
-    is_preferred: bool = False
+    is_preferred: bool = False,
 ) -> str:
-    """
-    Generates a natural language explanation for why a specific slot was chosen.
-    """
+    """Generates a natural language explanation for why a specific slot was chosen."""
     if not client:
         return f"Matched based on overall quality score ({score}) and mutual availability."
 
@@ -309,17 +367,15 @@ def generate_assignment_reasoning(
         
         Rules: Max 2-3 sentences. Enthusiastic but professional.
         """
-        
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": "You provide short, helpful interview scheduling justifications."},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             temperature=0.7,
-            max_tokens=150
+            max_tokens=150,
         )
-        
         return response.choices[0].message.content.strip()
 
     except Exception as e:
@@ -330,24 +386,21 @@ def generate_assignment_reasoning(
 def resolve_conflicts_with_ai(
     unassigned: List[Candidate],
     assignments: List[Assignment],
-    feasible_matrix: List[tuple]
+    feasible_matrix: List[tuple],
 ) -> str:
-    """
-    Analyzes the scheduling impasse and suggests strategic fixes (swaps, expansions).
-    """
+    """Analyzes scheduling impasse and suggests strategic fixes."""
     if not unassigned:
         return "No conflicts detected. All candidates successfully assigned."
 
-    # Build a condensed representation of the conflict for the AI
-    conflict_report = []
-    for c in unassigned:
-        # Find all the 'what-could-have-been' slots for this candidate
-        potentials = [f"{t[2].name} at {t[1]}" for t in feasible_matrix if t[0].id == c.id]
-        conflict_report.append(f"Candidate {c.name} had {len(potentials)} potential slots, but all were blocked by existing assignments.")
+    conflict_report = [
+        f"Candidate {c.name} had {len([t for t in feasible_matrix if t[0].id == c.id])} "
+        f"potential slots, but all were blocked by existing assignments."
+        for c in unassigned
+    ]
 
     if not client:
         return (
-            "Conflict detected: Interviewer capacity reached or slots double-booked. \n"
+            "Conflict detected: Interviewer capacity reached or slots double-booked.\n"
             "Fallback Recommendation: Add more availability for high-demand interviewers or "
             "request additional time windows from unassigned candidates."
         )
@@ -365,17 +418,15 @@ def resolve_conflicts_with_ai(
         Task: Provide 3 prioritized action items (swaps, availability requests, or window expansions).
         Rules: Professional tone. Max 4 sentences. Bullet points.
         """
-        
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": "You are a master logistics optimizer for hiring teams."},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             temperature=0.5,
-            max_tokens=250
+            max_tokens=250,
         )
-        
         return response.choices[0].message.content.strip()
 
     except Exception as e:
@@ -384,11 +435,8 @@ def resolve_conflicts_with_ai(
 
 
 if __name__ == "__main__":
-    # Test cases
     test_input = "Tue and Thu from 2 to 5 PM, but I prefer Thursday afternoon"
     print(f"Testing with: {test_input}")
-    
-    # If no API key, you should see the fallback in action
     slots = parse_availability_with_ai(test_input)
     print("Parsed Slots:")
     for s in slots:

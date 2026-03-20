@@ -1,0 +1,4 @@
+﻿'Mon 9 AM-5 PM' -> []
+'Wed 9 AM-5 PM' -> []
+'Tue-Thu 2-5 PM' -> [[TUESDAY 14:00-17:00], [WEDNESDAY 14:00-17:00], [THURSDAY 14:00-17:00]]
+'Fri 9 AM-12 PM' -> []
