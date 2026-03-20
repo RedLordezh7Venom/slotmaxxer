@@ -135,6 +135,23 @@ The "Quality Score" ensures **Global Optimization** while preserving recruiter i
 
 ---
 
+### 🚢 Deployment (Docker)
+
+SlotMaxxer is ready for production scaling via Docker. We use `uv` and `python:3.12-slim` for sub-second container starts.
+
+```bash
+# 1. Build the image
+docker build -t slotmaxxer .
+
+# 2. Spin up the container
+# Replace your_key_here with your actual Groq API key
+docker run -d -p 8000:8000 -e GROQ_API_KEY=your_key_here slotmaxxer
+```
+
+The engine will be healthy and available at `http://localhost:8000`.
+
+---
+
 ### 🧪 Testing & Quality
 
 Verify the engine's reliability across 50+ comprehensive test scenarios, including the new Hungarian benchmarks:
