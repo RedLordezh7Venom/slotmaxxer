@@ -105,6 +105,17 @@ We love builders! If you have a smarter optimization algorithm or a cleaner UI c
 4. Push (`git push origin feat/YourFeature`).
 5. Open a Pull Request.
 
+### 🧪 Testing & Quality
+
+Verify the engine's reliability across 45+ comprehensive test scenarios:
+
+```bash
+# Run all tests (Edge Cases, Stress, Security, Performance)
+uv run python run_tests.py
+```
+
+All test logic reside in the `/tests` directory, with automated reports generated in `/tests/reports`.
+
 ---
 
 ### 📄 License

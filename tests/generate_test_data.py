@@ -248,7 +248,7 @@ def generate_all_test_datasets():
         "recurring_availability": gen.generate_edge_case_dataset("recurring_availability")
     }
     
-    with open("test_data_edge_cases.json", "w", encoding="utf-8") as f:
+    with open("tests/data/edge_cases.json", "w", encoding="utf-8") as f:
         json.dump(edge_cases, f, indent=2, ensure_ascii=False)
     
     # Stress test datasets
@@ -258,7 +258,7 @@ def generate_all_test_datasets():
         "large_scale": gen.generate_stress_test_dataset(100, 10)
     }
     
-    with open("test_data_stress.json", "w") as f:
+    with open("tests/data/stress.json", "w") as f:
         json.dump(stress_tests, f, indent=2)
     
     # Realistic scenarios
@@ -268,13 +268,13 @@ def generate_all_test_datasets():
         "interview_day": gen.generate_realistic_scenario("interview_day")
     }
     
-    with open("test_data_scenarios.json", "w") as f:
+    with open("tests/data/scenarios.json", "w") as f:
         json.dump(scenarios, f, indent=2)
     
-    print("✓ Generated test datasets:")
-    print("  - test_data_edge_cases.json (5 edge cases)")
-    print("  - test_data_stress.json (3 stress tests)")
-    print("  - test_data_scenarios.json (3 realistic scenarios)")
+    print("✓ Generated test datasets in tests/data/:")
+    print("  - edge_cases.json (5 edge cases)")
+    print("  - stress.json (3 stress tests)")
+    print("  - scenarios.json (3 realistic scenarios)")
     
     return edge_cases, stress_tests, scenarios
 
