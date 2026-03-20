@@ -138,7 +138,7 @@ The "Quality Score" ensures **Global Optimization** while preserving recruiter i
 ### 🚢 Deployment (Docker)
 
 SlotMaxxer is ready for production scaling via Docker. We use `uv` and `python:3.12-slim` for sub-second container starts.
-
+available at  : https://hub.docker.com/r/provetgrizzner/slotmaxxer
 ```bash
 # 1. Build the image
 docker build -t slotmaxxer .
