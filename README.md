@@ -142,5 +142,5 @@ All test logic reside in the `/tests` directory, with automated reports generate
 This project is licensed under the **MIT License**. Use it to optimize your company's efficiency or build the next big recruitment tool.
 
 <p align="center">
-  Built with ⚡ by the <strong>SlotMaxxer Team</strong>
+  Built with ⚡ by <strong>RedLordezh7Venom</strong>
 </p>
