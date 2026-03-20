@@ -333,3 +333,37 @@ Your system is:
 * ⚠️ Not mathematically optimal
 
 **→ Fully acceptable for the assessment** 🚀
+
+
+# Action Plan: Optimal Assignment + Deterministic Data Preprocessing
+
+## Executive Summary
+
+**Goal:** Transform SlotMaxxer from greedy → optimal assignment with deterministic data preprocessing
+
+**Why:** 
+- Guarantees mathematically best solution
+- AI only for edge cases (not core logic)
+- Reproducible results (same input = same output)
+- Production-grade reliability
+
+**Timeline:** 5-10 focused prompts to implement
+
+**Repository:** https://github.com/RedLordezh7Venom/slotmaxxer
+
+---
+
+## Current State Analysis
+
+### What Works ✅
+- UI/UX (professional, clean)
+- API structure (FastAPI)
+- Basic parsing (Groq integration)
+- Sequential assignment (no double-booking)
+
+### What Needs Changing ⚠️
+1. **Algorithm:** Greedy → Hungarian (optimal)
+2. **Data parsing:** AI-first → Rules-first (deterministic)
+3. **Scoring:** Simple addition → Cost matrix
+4. **Assignment:** Sequential picking → Global optimization
+ 
