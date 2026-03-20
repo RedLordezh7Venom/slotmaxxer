@@ -18,14 +18,14 @@
 
 ---
 
-<p align="center">
-  <a href="#-the-workflow-nightmare">Scenario</a> •
-  <a href="#-feature-highlights">Features</a> •
-  <a href="#️-how-it-works">Architecture</a> •
-  <a href="#️-tech-stack">Stack</a> •
-  <a href="#-configuration-weights">Weights</a> •
-  <a href="#-testing--quality">Quality</a>
-</p>
+### 📑 Table of Contents
+
+1. [💡 The Workflow Nightmare](#-the-workflow-nightmare)
+2. [🔥 Feature Highlights](#-feature-highlights)
+3. [🛣️ How It Works](#️-how-it-works)
+4. [🛡️ Tech Stack](#️-tech-stack)
+5. [🔧 Configuration Weights](#-configuration-weights)
+6. [🧪 Testing & Quality](#-testing--quality)
 
 ---
 
