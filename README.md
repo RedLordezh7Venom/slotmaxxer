@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.svg" width="200" height="200" alt="SlotMaxxer Logo" />
+  <img src="docs/logo.svg" width="600" alt="SlotMaxxer Logo" />
 </p>
 
 <h1 align="center">⚡ SlotMaxxer</h1>
