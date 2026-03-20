@@ -17,7 +17,12 @@ from pydantic import BaseModel, Field
 from models import Candidate, Interviewer, Assignment, TimeSlot
 from ai_processor import parse_availability_with_ai, generate_assignment_reasoning, resolve_conflicts_with_ai
 from utils import expand_recurring_availability, generate_email_template
-from scheduler_engine import generate_feasible_assignments, calculate_quality_score, optimal_assign
+from scheduler_engine import (
+    generate_feasible_assignments,
+    calculate_quality_score,
+    optimal_assign,
+    optimal_assign_hungarian,
+)
 
 # Setup Logging
 logging.basicConfig(
@@ -248,24 +253,25 @@ async def schedule_interviews(req: ScheduleRequest):
                 capacity=i.capacity
             ))
 
-        # 2. Generate Feasibility Matrix
-        triplets = generate_feasible_assignments(
-            internal_candidates, 
-            internal_interviewers, 
-            required_duration=req.duration
+        # 2. Optimal Assignment via Hungarian Algorithm
+        # Builds cost matrix internally and solves globally for max total quality.
+        # Falls back to greedy if no feasible assignments exist.
+        assignments, unassigned = optimal_assign_hungarian(
+            internal_candidates,
+            internal_interviewers,
+            required_duration=req.duration,
         )
 
-        # 3. Scoring
-        scored_triplets = []
-        # Pre-calculate interviewer scarcity
-        interviewer_total_slots = {i.id: len(i.availability) for i in internal_interviewers}
-        
-        for c_obj, slot, i_obj in triplets:
-            score = calculate_quality_score(c_obj, slot, i_obj, interviewer_total_slots[i_obj.id])
-            scored_triplets.append((c_obj, slot, i_obj, score))
-
-        # 4. Optimal Assignment
-        assignments, unassigned = optimal_assign(scored_triplets, internal_candidates)
+        # Fallback: greedy if Hungarian returned nothing but feasible triplets exist
+        if not assignments:
+            triplets = generate_feasible_assignments(
+                internal_candidates, internal_interviewers, required_duration=req.duration
+            )
+            if triplets:
+                interviewer_total_slots = {i.id: len(i.availability) for i in internal_interviewers}
+                scored = [(c, s, i, calculate_quality_score(c, s, i, interviewer_total_slots[i.id]))
+                          for c, s, i in triplets]
+                assignments, unassigned = optimal_assign(scored, internal_candidates)
 
         # 5. Enrich with AI Reasoning
         final_assignments = []

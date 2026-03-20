@@ -1,0 +1,10 @@
+﻿=== Test 1: Two candidates, two interviewers ===
+Assigned: 2, Unassigned: 0
+  C1 -> I1 @ [TUESDAY 15:00-16:00] (score=300)
+  C2 -> I2 @ [TUESDAY 14:00-15:00] (score=300)
+
+=== Test 2: No overlap double-booking (1 interviewer, 2 non-overlapping slots) ===
+Assigned: 2, Unassigned: 0
+  C3 -> I3 @ [MONDAY 10:00-11:00]
+  C4 -> I3 @ [MONDAY 09:00-10:00]
+  No conflicts: True

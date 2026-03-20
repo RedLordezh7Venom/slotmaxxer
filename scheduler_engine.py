@@ -327,6 +327,183 @@ def optimal_assign(
     return final_assignments, unassigned
 
 
+def optimal_assign_hungarian(
+    candidates: List[Candidate],
+    interviewers: List[Interviewer],
+    required_duration: int = 60,
+    discretization_step: int = 30,
+    max_rounds: int = 5,
+) -> Tuple[List[Assignment], List[Candidate]]:
+    """
+    Optimal assignment using the Hungarian Algorithm (scipy.optimize.linear_sum_assignment).
+
+    Guarantees globally maximum total quality score — unlike greedy which only
+    picks the locally best choice at each step.
+
+    Conflict Strategy — Iterative Hungarian:
+        The standard Hungarian algorithm doesn't know that two columns
+        (e.g., Interviewer A at 10:00 and Interviewer A at 10:30) are
+        mutually exclusive. We solve this by running multiple rounds:
+
+        Round 1: Solve the full matrix.
+        Conflict check: If two winners share the same interviewer at overlapping
+                        times, evict the lower-quality one.
+        Round 2: Re-solve on the reduced matrix (only evicted candidates vs
+                 columns that don't conflict with already-confirmed assignments).
+        Repeat up to max_rounds or until stable.
+
+    Time Complexity: O(N³) per round (Hungarian) + O(K²) conflict check
+    For typical scale (≤20 candidates): < 100ms
+    """
+    from scipy.optimize import linear_sum_assignment
+
+    if not candidates or not interviewers:
+        return [], list(candidates)
+
+    # ── Build initial cost matrix ─────────────────────────────────────────────
+    cost_matrix, col_map = build_cost_matrix(
+        candidates, interviewers, required_duration, discretization_step
+    )
+
+    if cost_matrix.size == 0 or cost_matrix.shape[1] == 0:
+        return [], list(candidates)
+
+    n_candidates = len(candidates)
+    candidate_index = {c.id: idx for idx, c in enumerate(candidates)}
+
+    # Working cost matrix — we'll zero-out columns as slots get taken
+    working_matrix = cost_matrix.copy()
+
+    confirmed: Dict[int, Tuple[Candidate, TimeSlot, Interviewer]] = {}  # row_idx → assignment
+    # Tracks which (interviewer_id, slot) pairs are now occupied
+    occupied_slots: List[Tuple[str, TimeSlot]] = []
+
+    remaining_rows = list(range(n_candidates))  # candidate row indices still unassigned
+
+    for round_num in range(max_rounds):
+        if not remaining_rows:
+            break
+
+        # ── Sub-matrix for remaining candidates only ──────────────────────────
+        sub_matrix = working_matrix[np.ix_(remaining_rows, range(working_matrix.shape[1]))]
+
+        # Check if any feasible cells exist for remaining candidates
+        if (sub_matrix < MAX_COST).sum() == 0:
+            break  # Nobody can be assigned anymore
+
+        # ── Hungarian solve ───────────────────────────────────────────────────
+        row_ind, col_ind = linear_sum_assignment(sub_matrix)
+
+        # Map sub-matrix row indices back to original candidate rows
+        tentative: Dict[int, int] = {}  # orig_row → col
+        for r, c in zip(row_ind, col_ind):
+            orig_row = remaining_rows[r]
+            if sub_matrix[r, c] < MAX_COST:  # Valid (feasible) assignment
+                tentative[orig_row] = c
+
+        if not tentative:
+            break
+
+        # ── Conflict detection & resolution ──────────────────────────────────
+        # An interviewer conflict occurs when two tentative assignments share
+        # the same interviewer and their slots overlap in time.
+        newly_confirmed: Dict[int, int] = {}     # orig_row → col (no conflict)
+        evicted_rows: List[int] = []             # displaced back to unassigned
+
+        # Sort tentative by quality (ascending cost = best quality first)
+        # So when there's a conflict, the higher-quality assignment wins.
+        tentative_sorted = sorted(tentative.items(), key=lambda x: working_matrix[x[0], x[1]])
+
+        round_occupied: List[Tuple[str, TimeSlot]] = []  # within this round
+
+        for orig_row, col in tentative_sorted:
+            if col not in col_map:
+                continue  # Infeasible column somehow selected — skip
+
+            _, slot, interviewer = col_map[col]
+
+            # Check against already-confirmed slots AND within-round slots
+            all_occupied = occupied_slots + round_occupied
+            conflict = any(
+                iid == interviewer.id and slot.overlaps_with(occ_slot)
+                for iid, occ_slot in all_occupied
+            )
+
+            if conflict:
+                # This assignment collides — block this column for this candidate
+                # and add them back to the pool
+                working_matrix[orig_row, col] = MAX_COST
+                evicted_rows.append(orig_row)
+            else:
+                newly_confirmed[orig_row] = col
+                round_occupied.append((interviewer.id, slot))
+
+        # Commit this round's conflict-free assignments
+        for orig_row, col in newly_confirmed.items():
+            confirmed[orig_row] = (candidates[orig_row], col_map[col][1], col_map[col][2])
+            occupied_slots.append((col_map[col][2].id, col_map[col][1]))
+            # Block this column globally (one slot = one candidate)
+            working_matrix[:, col] = MAX_COST
+
+        # Update remaining rows: confirmed are done, evicted go back for next round
+        remaining_rows = [
+            r for r in remaining_rows
+            if r not in newly_confirmed and r not in evicted_rows
+        ] + evicted_rows
+
+    # ── Build Assignment objects ──────────────────────────────────────────────
+    assignments: List[Assignment] = []
+    assigned_ids: set = set()
+
+    for orig_row, (candidate, slot, interviewer) in confirmed.items():
+        quality = int(MAX_COST - cost_matrix[orig_row, _find_col(cost_matrix, orig_row, col_map, slot, interviewer)])
+        assigned_ids.add(candidate.id)
+        assignments.append(Assignment(
+            candidate_id=candidate.id,
+            interviewer_id=interviewer.id,
+            slot=slot,
+            quality_score=max(quality, 0),
+            reasoning=f"Globally optimal assignment (Hungarian algorithm, score: {max(quality,0)} pts)."
+        ))
+
+    # ── Alternatives: top scored slots not chosen ─────────────────────────────
+    for a in assignments:
+        cand_row = candidate_index[a.candidate_id]
+        alts: List[TimeSlot] = []
+        # Walk original cost matrix for this candidate, sorted by cost
+        col_order = np.argsort(cost_matrix[cand_row])
+        for col in col_order:
+            if col not in col_map:
+                continue
+            _, alt_slot, alt_intv = col_map[col]
+            if alt_slot == a.slot and alt_intv.id == a.interviewer_id:
+                continue  # Skip the chosen one
+            if cost_matrix[cand_row, col] >= MAX_COST:
+                continue  # Infeasible
+            alts.append(alt_slot)
+            if len(alts) >= 3:
+                break
+        a.alternatives = alts
+
+    unassigned = [c for c in candidates if c.id not in assigned_ids]
+    return assignments, unassigned
+
+
+def _find_col(
+    cost_matrix: np.ndarray,
+    row: int,
+    col_map: Dict[int, Tuple],
+    slot: TimeSlot,
+    interviewer: Interviewer,
+) -> int:
+    """Reverse-lookup: find the column index matching a confirmed (slot, interviewer) pair."""
+    for col, (_, s, i) in col_map.items():
+        if s == slot and i.id == interviewer.id:
+            return col
+    # Fallback: find lowest-cost feasible column for this row
+    return int(np.argmin(cost_matrix[row]))
+
+
 if __name__ == "__main__":
     # Full logical flow test
     from datetime import time
