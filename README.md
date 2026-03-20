@@ -12,7 +12,6 @@
   <img src="https://img.shields.io/badge/Maintained%3F-yes-emerald?style=for-the-badge" alt="Maintained" />
   <img src="https://img.shields.io/badge/Powered%20By-Groq%20AI-sky?style=for-the-badge" alt="Groq" />
   <img src="https://img.shields.io/badge/License-MIT-indigo?style=for-the-badge" alt="License" />
-  <img src="https://img.shields.io/badge/PRs-Welcome-fuchsia?style=for-the-badge" alt="PRs Welcome" />
 </p>
 
 <br />
