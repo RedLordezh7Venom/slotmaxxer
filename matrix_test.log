@@ -1,0 +1,6 @@
+﻿Matrix shape: (2, 3)  (2 candidates x 3 interview slots)
+Matrix:
+[[99367. 99367. 99367.]
+ [99367. 99367. 99367.]]
+Feasible cells in col_map: 3
+Feasible assignments: 6  (should be >0 since both candidates overlap interviewer)
