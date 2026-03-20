@@ -1,6 +1,10 @@
 import os
 import json
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 from typing import List, Optional
 from groq import Groq
 from models import TimeSlot, DayOfWeek, PreferenceLevel, Candidate, Assignment
@@ -54,7 +58,7 @@ def parse_availability_with_ai(text: str) -> List[TimeSlot]:
     try:
         # 2. AI Parsing Attempt
         response = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": f"Parse: {text}"}
@@ -122,7 +126,7 @@ def generate_assignment_reasoning(
         """
         
         response = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": "You provide short, helpful interview scheduling justifications."},
                 {"role": "user", "content": prompt}
@@ -178,7 +182,7 @@ def resolve_conflicts_with_ai(
         """
         
         response = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": "You are a master logistics optimizer for hiring teams."},
                 {"role": "user", "content": prompt}

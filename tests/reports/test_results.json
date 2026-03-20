@@ -1,0 +1,426 @@
+{
+  "summary": {
+    "total_tests": 10,
+    "passed": 10,
+    "failed": 0,
+    "errors": 0,
+    "pass_rate": "100.0%",
+    "avg_response_time_ms": 3391,
+    "generated_at": "2026-03-20T13:35:16.439900"
+  },
+  "tests": [
+    {
+      "test_name": "NOMINAL-1: Exact Example (Tue 3-4 PM)",
+      "status": "PASS",
+      "status_code": 200,
+      "response_time_ms": 3348,
+      "expected": "Assigns Tue 3-4 PM (matches instructions example)",
+      "response_data": {
+        "success": true,
+        "assignments": [
+          {
+            "candidate": "Sarah Johnson",
+            "interviewer": "Interviewer A",
+            "slot": {
+              "day": "TUESDAY",
+              "date": null,
+              "time": "15:00 - 16:00"
+            },
+            "score": 1200,
+            "reasoning": "We scheduled Sarah Johnson with Interviewer A at TUESDAY 15:00 due to our system-optimized constraints, which prioritize efficiency and alignment with our interview schedule. With a high Quality Score of 1200, we believe this pairing will yield valuable insights. Given the system's optimization, this time slot was available and deemed suitable for a productive conversation.",
+            "alternatives": [
+              {
+                "day": "TUESDAY",
+                "date": null,
+                "time": "14:00 - 15:00"
+              },
+              {
+                "day": "TUESDAY",
+                "date": null,
+                "time": "14:30 - 15:30"
+              },
+              {
+                "day": "TUESDAY",
+                "date": null,
+                "time": "15:30 - 16:30"
+              }
+            ],
+            "email_template": "Subject: Interview Invitation: [SlotMaxxer] Sarah Johnson x Interviewer A\n\nHi Sarah Johnson,\n\nGreat news! We've optimized our panel's availability and would like to invite you for an interview with Interviewer A.\n\n\ud83d\udcc5 Confirmed Time: TUESDAY 15:00\n\n---\n\ud83d\udca1 Why this slot was chosen:\n\"We scheduled Sarah Johnson with Interviewer A at TUESDAY 15:00 due to our system-optimized constraints, which prioritize efficiency and alignment with our interview schedule. With a high Quality Score of 1200, we believe this pairing will yield valuable insights. Given the system's optimization, this time slot was available and deemed suitable for a productive conversation.\"\n---\n\n\nIf this time doesn't work, we have these backup options:\n- TUESDAY 14:00\n- TUESDAY 14:30\n- TUESDAY 15:30\n\n\ud83d\udccd Calendar Invite Details:\nSummary: Interview with Interviewer A\nTime: TUESDAY 15:00\nPlatform: Video Link to follow\n\nPlease confirm if this works for you!\n\nBest regards,\nSlotMaxxer Scheduling Team"
+          }
+        ],
+        "unassigned": [],
+        "conflict_resolution": null
+      },
+      "error": null,
+      "timestamp": "2026-03-20T13:34:40.835825"
+    },
+    {
+      "test_name": "NOMINAL-2: Multi-Day (Wed 3-4 PM preferred)",
+      "status": "PASS",
+      "status_code": 200,
+      "response_time_ms": 3366,
+      "expected": "Multiple valid slots, Wed 15:00 ranked highest",
+      "response_data": {
+        "success": true,
+        "assignments": [
+          {
+            "candidate": "Mike Chen",
+            "interviewer": "Dr. A",
+            "slot": {
+              "day": "WEDNESDAY",
+              "date": null,
+              "time": "15:00 - 16:00"
+            },
+            "score": 1200,
+            "reasoning": "Mike Chen was scheduled with Dr. A at WEDNESDAY 15:00 because the system-optimized constraints prioritized efficiency and availability. This slot was deemed optimal for Mike's interview, despite not aligning with his personal preference, in consideration of the overall schedule's quality and our goal to maintain a high quality score of 1200.",
+            "alternatives": [
+              {
+                "day": "THURSDAY",
+                "date": null,
+                "time": "14:00 - 15:00"
+              },
+              {
+                "day": "THURSDAY",
+                "date": null,
+                "time": "14:30 - 15:30"
+              },
+              {
+                "day": "THURSDAY",
+                "date": null,
+                "time": "15:00 - 16:00"
+              }
+            ],
+            "email_template": "Subject: Interview Invitation: [SlotMaxxer] Mike Chen x Dr. A\n\nHi Mike Chen,\n\nGreat news! We've optimized our panel's availability and would like to invite you for an interview with Dr. A.\n\n\ud83d\udcc5 Confirmed Time: WEDNESDAY 15:00\n\n---\n\ud83d\udca1 Why this slot was chosen:\n\"Mike Chen was scheduled with Dr. A at WEDNESDAY 15:00 because the system-optimized constraints prioritized efficiency and availability. This slot was deemed optimal for Mike's interview, despite not aligning with his personal preference, in consideration of the overall schedule's quality and our goal to maintain a high quality score of 1200.\"\n---\n\n\nIf this time doesn't work, we have these backup options:\n- THURSDAY 14:00\n- THURSDAY 14:30\n- THURSDAY 15:00\n\n\ud83d\udccd Calendar Invite Details:\nSummary: Interview with Dr. A\nTime: WEDNESDAY 15:00\nPlatform: Video Link to follow\n\nPlease confirm if this works for you!\n\nBest regards,\nSlotMaxxer Scheduling Team"
+          }
+        ],
+        "unassigned": [],
+        "conflict_resolution": null
+      },
+      "error": null,
+      "timestamp": "2026-03-20T13:34:44.704422"
+    },
+    {
+      "test_name": "NOMINAL-3: Natural Language (AI Parse)",
+      "status": "PASS",
+      "status_code": 200,
+      "response_time_ms": 2980,
+      "expected": "AI parses 'afternoons' correctly, assigns Tue or Thu 2-3 PM",
+      "response_data": {
+        "success": true,
+        "assignments": [
+          {
+            "candidate": "Emily Davis",
+            "interviewer": "Dr. Smith",
+            "slot": {
+              "day": "TUESDAY",
+              "date": null,
+              "time": "14:00 - 15:00"
+            },
+            "score": 283,
+            "reasoning": "I scheduled Emily Davis with Dr. Smith at TUESDAY 14:00 as it aligns with our system-optimized constraints, ensuring optimal utilization of the interviewer's time and minimizing wait times for both parties. Furthermore, our quality score of 283 indicates a strong match, outweighing the fact that this interview doesn't meet Emily's personal preference.",
+            "alternatives": [
+              {
+                "day": "TUESDAY",
+                "date": null,
+                "time": "14:30 - 15:30"
+              },
+              {
+                "day": "TUESDAY",
+                "date": null,
+                "time": "15:00 - 16:00"
+              },
+              {
+                "day": "TUESDAY",
+                "date": null,
+                "time": "14:30 - 15:30"
+              }
+            ],
+            "email_template": "Subject: Interview Invitation: [SlotMaxxer] Emily Davis x Dr. Smith\n\nHi Emily Davis,\n\nGreat news! We've optimized our panel's availability and would like to invite you for an interview with Dr. Smith.\n\n\ud83d\udcc5 Confirmed Time: TUESDAY 14:00\n\n---\n\ud83d\udca1 Why this slot was chosen:\n\"I scheduled Emily Davis with Dr. Smith at TUESDAY 14:00 as it aligns with our system-optimized constraints, ensuring optimal utilization of the interviewer's time and minimizing wait times for both parties. Furthermore, our quality score of 283 indicates a strong match, outweighing the fact that this interview doesn't meet Emily's personal preference.\"\n---\n\n\nIf this time doesn't work, we have these backup options:\n- TUESDAY 14:30\n- TUESDAY 15:00\n- TUESDAY 14:30\n\n\ud83d\udccd Calendar Invite Details:\nSummary: Interview with Dr. Smith\nTime: TUESDAY 14:00\nPlatform: Video Link to follow\n\nPlease confirm if this works for you!\n\nBest regards,\nSlotMaxxer Scheduling Team"
+          }
+        ],
+        "unassigned": [],
+        "conflict_resolution": null
+      },
+      "error": null,
+      "timestamp": "2026-03-20T13:34:48.187758"
+    },
+    {
+      "test_name": "NOMINAL-4: Scarcity Priority (Rare Interviewer)",
+      "status": "PASS",
+      "status_code": 200,
+      "response_time_ms": 3387,
+      "expected": "Assigns to CEO (scarce resource), high priority score",
+      "response_data": {
+        "success": true,
+        "assignments": [
+          {
+            "candidate": "Alex Rodriguez",
+            "interviewer": "CEO (Limited)",
+            "slot": {
+              "day": "MONDAY",
+              "date": null,
+              "time": "10:00 - 11:00"
+            },
+            "score": 550,
+            "reasoning": "I scheduled Alex Rodriguez with the CEO (Limited) at MONDAY 10:00 due to the system-optimized constraint, which prioritizes the most efficient use of the CEO's time. Considering the Quality Score of 550, Alex Rodriguez meets the minimum requirement for a meeting with the CEO, allowing us to proceed with the scheduled time. This alignment with the CEO's schedule will help utilize their time effectively, despite not aligning with Alex Rodriguez's candidate preference.",
+            "alternatives": [
+              {
+                "day": "MONDAY",
+                "date": null,
+                "time": "10:30 - 11:30"
+              },
+              {
+                "day": "MONDAY",
+                "date": null,
+                "time": "11:00 - 12:00"
+              },
+              {
+                "day": "MONDAY",
+                "date": null,
+                "time": "11:30 - 12:30"
+              }
+            ],
+            "email_template": "Subject: Interview Invitation: [SlotMaxxer] Alex Rodriguez x CEO (Limited)\n\nHi Alex Rodriguez,\n\nGreat news! We've optimized our panel's availability and would like to invite you for an interview with CEO (Limited).\n\n\ud83d\udcc5 Confirmed Time: MONDAY 10:00\n\n---\n\ud83d\udca1 Why this slot was chosen:\n\"I scheduled Alex Rodriguez with the CEO (Limited) at MONDAY 10:00 due to the system-optimized constraint, which prioritizes the most efficient use of the CEO's time. Considering the Quality Score of 550, Alex Rodriguez meets the minimum requirement for a meeting with the CEO, allowing us to proceed with the scheduled time. This alignment with the CEO's schedule will help utilize their time effectively, despite not aligning with Alex Rodriguez's candidate preference.\"\n---\n\n\nIf this time doesn't work, we have these backup options:\n- MONDAY 10:30\n- MONDAY 11:00\n- MONDAY 11:30\n\n\ud83d\udccd Calendar Invite Details:\nSummary: Interview with CEO (Limited)\nTime: MONDAY 10:00\nPlatform: Video Link to follow\n\nPlease confirm if this works for you!\n\nBest regards,\nSlotMaxxer Scheduling Team"
+          }
+        ],
+        "unassigned": [],
+        "conflict_resolution": null
+      },
+      "error": null,
+      "timestamp": "2026-03-20T13:34:52.078724"
+    },
+    {
+      "test_name": "NOMINAL-5: Three Candidates Sequential",
+      "status": "PASS",
+      "status_code": 200,
+      "response_time_ms": 4306,
+      "expected": "All 3 assigned different 1-hour slots, no conflicts",
+      "response_data": {
+        "success": true,
+        "assignments": [
+          {
+            "candidate": "Jane Doe",
+            "interviewer": "Dr. Johnson",
+            "slot": {
+              "day": "MONDAY",
+              "date": null,
+              "time": "10:00 - 11:00"
+            },
+            "score": 1300,
+            "reasoning": "Jane Doe was scheduled with Dr. Johnson at MONDAY 10:00 due to system-optimized constraints, ensuring the highest-quality patient match and efficient use of resources. With a Quality Score of 1300, this appointment aligns with our goal of optimizing patient satisfaction while minimizing wait times. This schedule has been carefully curated to maximize productivity and quality.",
+            "alternatives": [
+              {
+                "day": "MONDAY",
+                "date": null,
+                "time": "13:00 - 14:00"
+              },
+              {
+                "day": "MONDAY",
+                "date": null,
+                "time": "13:30 - 14:30"
+              },
+              {
+                "day": "MONDAY",
+                "date": null,
+                "time": "14:00 - 15:00"
+              }
+            ],
+            "email_template": "Subject: Interview Invitation: [SlotMaxxer] Jane Doe x Dr. Johnson\n\nHi Jane Doe,\n\nGreat news! We've optimized our panel's availability and would like to invite you for an interview with Dr. Johnson.\n\n\ud83d\udcc5 Confirmed Time: MONDAY 10:00\n\n---\n\ud83d\udca1 Why this slot was chosen:\n\"Jane Doe was scheduled with Dr. Johnson at MONDAY 10:00 due to system-optimized constraints, ensuring the highest-quality patient match and efficient use of resources. With a Quality Score of 1300, this appointment aligns with our goal of optimizing patient satisfaction while minimizing wait times. This schedule has been carefully curated to maximize productivity and quality.\"\n---\n\n\nIf this time doesn't work, we have these backup options:\n- MONDAY 13:00\n- MONDAY 13:30\n- MONDAY 14:00\n\n\ud83d\udccd Calendar Invite Details:\nSummary: Interview with Dr. Johnson\nTime: MONDAY 10:00\nPlatform: Video Link to follow\n\nPlease confirm if this works for you!\n\nBest regards,\nSlotMaxxer Scheduling Team"
+          },
+          {
+            "candidate": "John Smith",
+            "interviewer": "Dr. Johnson",
+            "slot": {
+              "day": "MONDAY",
+              "date": null,
+              "time": "11:00 - 12:00"
+            },
+            "score": 1300,
+            "reasoning": "John Smith was scheduled with Dr. Johnson at MONDAY 11:00 due to the system-optimized constraints, prioritizing efficiency and optimal utilization of time. This scheduling decision allowed for a high-quality match, given John's Quality Score of 1300, despite not aligning with his personal preferences.",
+            "alternatives": [
+              {
+                "day": "MONDAY",
+                "date": null,
+                "time": "13:00 - 14:00"
+              },
+              {
+                "day": "MONDAY",
+                "date": null,
+                "time": "13:30 - 14:30"
+              },
+              {
+                "day": "MONDAY",
+                "date": null,
+                "time": "14:00 - 15:00"
+              }
+            ],
+            "email_template": "Subject: Interview Invitation: [SlotMaxxer] John Smith x Dr. Johnson\n\nHi John Smith,\n\nGreat news! We've optimized our panel's availability and would like to invite you for an interview with Dr. Johnson.\n\n\ud83d\udcc5 Confirmed Time: MONDAY 11:00\n\n---\n\ud83d\udca1 Why this slot was chosen:\n\"John Smith was scheduled with Dr. Johnson at MONDAY 11:00 due to the system-optimized constraints, prioritizing efficiency and optimal utilization of time. This scheduling decision allowed for a high-quality match, given John's Quality Score of 1300, despite not aligning with his personal preferences.\"\n---\n\n\nIf this time doesn't work, we have these backup options:\n- MONDAY 13:00\n- MONDAY 13:30\n- MONDAY 14:00\n\n\ud83d\udccd Calendar Invite Details:\nSummary: Interview with Dr. Johnson\nTime: MONDAY 11:00\nPlatform: Video Link to follow\n\nPlease confirm if this works for you!\n\nBest regards,\nSlotMaxxer Scheduling Team"
+          },
+          {
+            "candidate": "Lisa Wang",
+            "interviewer": "Dr. Johnson",
+            "slot": {
+              "day": "MONDAY",
+              "date": null,
+              "time": "12:00 - 13:00"
+            },
+            "score": 1300,
+            "reasoning": "Lisa Wang was scheduled with Dr. Johnson at MONDAY 12:00 due to the system-optimized constraint, which prioritizes efficiency and productivity. Our algorithm optimized the schedule to ensure maximum utilization of the doctor's time, and this time slot fit perfectly into the overall schedule. This time slot also minimizes wait times for subsequent patients.",
+            "alternatives": [
+              {
+                "day": "MONDAY",
+                "date": null,
+                "time": "12:30 - 13:30"
+              },
+              {
+                "day": "MONDAY",
+                "date": null,
+                "time": "13:00 - 14:00"
+              },
+              {
+                "day": "MONDAY",
+                "date": null,
+                "time": "13:30 - 14:30"
+              }
+            ],
+            "email_template": "Subject: Interview Invitation: [SlotMaxxer] Lisa Wang x Dr. Johnson\n\nHi Lisa Wang,\n\nGreat news! We've optimized our panel's availability and would like to invite you for an interview with Dr. Johnson.\n\n\ud83d\udcc5 Confirmed Time: MONDAY 12:00\n\n---\n\ud83d\udca1 Why this slot was chosen:\n\"Lisa Wang was scheduled with Dr. Johnson at MONDAY 12:00 due to the system-optimized constraint, which prioritizes efficiency and productivity. Our algorithm optimized the schedule to ensure maximum utilization of the doctor's time, and this time slot fit perfectly into the overall schedule. This time slot also minimizes wait times for subsequent patients.\"\n---\n\n\nIf this time doesn't work, we have these backup options:\n- MONDAY 12:30\n- MONDAY 13:00\n- MONDAY 13:30\n\n\ud83d\udccd Calendar Invite Details:\nSummary: Interview with Dr. Johnson\nTime: MONDAY 12:00\nPlatform: Video Link to follow\n\nPlease confirm if this works for you!\n\nBest regards,\nSlotMaxxer Scheduling Team"
+          }
+        ],
+        "unassigned": [],
+        "conflict_resolution": null
+      },
+      "error": null,
+      "timestamp": "2026-03-20T13:34:56.886774"
+    },
+    {
+      "test_name": "EDGE-1: Zero Overlap",
+      "status": "PASS",
+      "status_code": 200,
+      "response_time_ms": 3181,
+      "expected": "No overlap detected, clear error message with suggestions",
+      "response_data": {
+        "success": true,
+        "assignments": [],
+        "unassigned": [
+          "Grace Thompson"
+        ],
+        "conflict_resolution": "Based on the scheduling impasse for SlotMaxxer, here are three prioritized action items:\n\n\u2022 **Action Item 1: Availability Request - Candidate Grace Thompson**: Request additional availability from Grace Thompson to accommodate her preferred time slots. This will increase her chances of getting assigned to a slot. Request will be made to her directly, and she will be informed of the potential benefits of being available on additional days.\n\n\u2022 **Action Item 2: Swap with Lower-Priority Task**: Identify a lower-priority task that can be swapped with one of the existing assignments blocking Grace Thompson's slots. This will free up a slot for her, allowing her to be assigned. The swapped task will be reassigned to a different candidate or team member.\n\n\u2022 **Action Item 3: Window Expansion - Task**: Consider expanding the time window for the task that is currently blocking Grace Thompson's slots. This will allow for more flexibility in scheduling and potentially open up additional slots for her. The expanded window will be communicated to the team and stakeholders to ensure everyone is aware of the updated schedule."
+      },
+      "error": null,
+      "timestamp": "2026-03-20T13:35:00.574306"
+    },
+    {
+      "test_name": "EDGE-2: Partial Overlap (30 min)",
+      "status": "PASS",
+      "status_code": 200,
+      "response_time_ms": 2979,
+      "expected": "Warning about insufficient duration or extends slot",
+      "response_data": {
+        "success": true,
+        "assignments": [],
+        "unassigned": [
+          "Tom Wilson"
+        ],
+        "conflict_resolution": "**Scheduling Impasse Analysis: Tom Wilson**\n\nTo resolve the scheduling impasse for Tom Wilson, the following prioritized action items are recommended:\n\n* **Swap 1: Request a swap with a candidate who has a conflicting slot**: Identify a candidate with a conflicting slot and request a swap, allowing Tom Wilson to be assigned to the slot.\n* **Availability Request: Request availability from the hiring manager**: Reach out to the hiring manager to request additional availability, potentially creating a new slot for Tom Wilson.\n* **Window Expansion: Request a window expansion for the conflicting slot**: If a swap or availability request is not feasible, consider requesting a window expansion for the conflicting slot, allowing Tom Wilson to be assigned within the expanded window."
+      },
+      "error": null,
+      "timestamp": "2026-03-20T13:35:04.056803"
+    },
+    {
+      "test_name": "EDGE-3: Capacity Exhaustion (5 candidates, 1 slot)",
+      "status": "PASS",
+      "status_code": 200,
+      "response_time_ms": 4513,
+      "expected": "1 assigned, 4 unassigned with clear message",
+      "response_data": {
+        "success": true,
+        "assignments": [
+          {
+            "candidate": "Candidate 1",
+            "interviewer": "Solo Interviewer",
+            "slot": {
+              "day": "MONDAY",
+              "date": null,
+              "time": "10:00 - 11:00"
+            },
+            "score": 550,
+            "reasoning": "I scheduled Candidate 1 with Solo Interviewer at MONDAY 10:00 due to their strong Quality Score of 550, indicating a high potential fit for the role. Given that we couldn't accommodate their preference, I prioritized a system-optimized constraint, ensuring the best possible outcome in this instance. This schedule allows us to assess Candidate 1's qualifications while optimizing our interview process.",
+            "alternatives": [],
+            "email_template": "Subject: Interview Invitation: [SlotMaxxer] Candidate 1 x Solo Interviewer\n\nHi Candidate 1,\n\nGreat news! We've optimized our panel's availability and would like to invite you for an interview with Solo Interviewer.\n\n\ud83d\udcc5 Confirmed Time: MONDAY 10:00\n\n---\n\ud83d\udca1 Why this slot was chosen:\n\"I scheduled Candidate 1 with Solo Interviewer at MONDAY 10:00 due to their strong Quality Score of 550, indicating a high potential fit for the role. Given that we couldn't accommodate their preference, I prioritized a system-optimized constraint, ensuring the best possible outcome in this instance. This schedule allows us to assess Candidate 1's qualifications while optimizing our interview process.\"\n---\n\n\n\ud83d\udccd Calendar Invite Details:\nSummary: Interview with Solo Interviewer\nTime: MONDAY 10:00\nPlatform: Video Link to follow\n\nPlease confirm if this works for you!\n\nBest regards,\nSlotMaxxer Scheduling Team"
+          }
+        ],
+        "unassigned": [
+          "Candidate 2",
+          "Candidate 3",
+          "Candidate 4",
+          "Candidate 5"
+        ],
+        "conflict_resolution": "**Scheduling Analysis and Recommendations for SlotMaxxer**\n\nBased on the provided information, it appears that there are five unassigned candidates who were unable to be scheduled due to blocked slots. To address this issue, I recommend the following three prioritized action items:\n\n* **Swap existing assignments**: Identify potential swaps that could free up slots for the unassigned candidates. This could involve swapping candidates with similar availability and requirements.\n* **Request availability adjustments**: Reach out to the candidates who have existing assignments and request adjustments to their availability, such as expanding their window or rescheduling their slot.\n* **Expand window for successful assignment**: Expand the window of the successful assignment (16d7c35a matched with b4e62393) to accommodate one of the unassigned candidates, potentially creating a new slot for Candidate 2, 3, 4, or 5.\n\nThese action items aim to resolve the scheduling impasse and allocate the unassigned candidates to available slots."
+      },
+      "error": null,
+      "timestamp": "2026-03-20T13:35:09.072511"
+    },
+    {
+      "test_name": "EDGE-4: Empty Candidate Availability",
+      "status": "PASS",
+      "status_code": 200,
+      "response_time_ms": 3080,
+      "expected": "Validation error with clear message",
+      "response_data": {
+        "success": true,
+        "assignments": [],
+        "unassigned": [
+          "Invalid Candidate"
+        ],
+        "conflict_resolution": "**Action Items for SlotMaxxer:**\n\n\u2022 **Swap Candidate 1 with Candidate 2**: Consider swapping the assigned candidate with the invalid candidate. This might free up a slot for the invalid candidate, allowing them to be assigned. Both candidates have similar requirements, making this a suitable swap. This action should be prioritized due to the potential to free up a slot.\n\n\u2022 **Request Availability Adjustment from Candidate 3**: Reach out to Candidate 3 and request a 1-hour availability expansion during their current assigned slot. This small adjustment could create a potential slot for the invalid candidate, given their availability aligns with the requested expansion. This action is a good alternative if the swap does not work. \n\n\u2022 **Expand Window for Candidate 4**: Expand the availability window for Candidate 4 by 2 hours. This could create a new slot that might be suitable for the invalid candidate, given their availability and the expanded window. This action is a good last resort if the previous two actions do not yield a solution."
+      },
+      "error": null,
+      "timestamp": "2026-03-20T13:35:12.658350"
+    },
+    {
+      "test_name": "EDGE-5: Peak Time Preference (10 AM-2 PM)",
+      "status": "PASS",
+      "status_code": 200,
+      "response_time_ms": 2775,
+      "expected": "Top 3 slots in peak time range (10 AM-2 PM preferred)",
+      "response_data": {
+        "success": true,
+        "assignments": [
+          {
+            "candidate": "Noah Brown",
+            "interviewer": "Dr. Garcia",
+            "slot": {
+              "day": "MONDAY",
+              "date": null,
+              "time": "10:00 - 11:00"
+            },
+            "score": 1300,
+            "reasoning": "Noah Brown was scheduled with Dr. Garcia at MONDAY 10:00 due to our system-optimized constraints, which prioritize efficiency and availability. Although the quality score is high at 1300 and the match is not a top candidate preference, our algorithm has determined that Dr. Garcia's schedule is best utilized at this time slot. This optimized schedule enables us to maximize productivity while accommodating both the candidate's needs and the doctor's availability.",
+            "alternatives": [
+              {
+                "day": "MONDAY",
+                "date": null,
+                "time": "10:30 - 11:30"
+              },
+              {
+                "day": "MONDAY",
+                "date": null,
+                "time": "11:00 - 12:00"
+              },
+              {
+                "day": "MONDAY",
+                "date": null,
+                "time": "11:30 - 12:30"
+              }
+            ],
+            "email_template": "Subject: Interview Invitation: [SlotMaxxer] Noah Brown x Dr. Garcia\n\nHi Noah Brown,\n\nGreat news! We've optimized our panel's availability and would like to invite you for an interview with Dr. Garcia.\n\n\ud83d\udcc5 Confirmed Time: MONDAY 10:00\n\n---\n\ud83d\udca1 Why this slot was chosen:\n\"Noah Brown was scheduled with Dr. Garcia at MONDAY 10:00 due to our system-optimized constraints, which prioritize efficiency and availability. Although the quality score is high at 1300 and the match is not a top candidate preference, our algorithm has determined that Dr. Garcia's schedule is best utilized at this time slot. This optimized schedule enables us to maximize productivity while accommodating both the candidate's needs and the doctor's availability.\"\n---\n\n\nIf this time doesn't work, we have these backup options:\n- MONDAY 10:30\n- MONDAY 11:00\n- MONDAY 11:30\n\n\ud83d\udccd Calendar Invite Details:\nSummary: Interview with Dr. Garcia\nTime: MONDAY 10:00\nPlatform: Video Link to follow\n\nPlease confirm if this works for you!\n\nBest regards,\nSlotMaxxer Scheduling Team"
+          }
+        ],
+        "unassigned": [],
+        "conflict_resolution": null
+      },
+      "error": null,
+      "timestamp": "2026-03-20T13:35:15.937680"
+    }
+  ]
+}
