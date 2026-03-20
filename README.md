@@ -18,6 +18,17 @@
 
 ---
 
+<p align="center">
+  <a href="#-the-workflow-nightmare">Scenario</a> •
+  <a href="#-feature-highlights">Features</a> •
+  <a href="#️-how-it-works">Architecture</a> •
+  <a href="#️-tech-stack">Stack</a> •
+  <a href="#-configuration-weights">Weights</a> •
+  <a href="#-testing--quality">Quality</a>
+</p>
+
+---
+
 ### 💡 The Workflow Nightmare
 
 Recruiters spend **~3 hours weekly** manually cross-referencing natural language emails like *"Free Tue-Thu but prefer afternoons"* against panel availability. This leads to burnout, double-bookings, and "suboptimal" slots that frustrate busy interviewers.
