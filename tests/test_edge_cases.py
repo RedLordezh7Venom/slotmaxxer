@@ -9,7 +9,7 @@ from models import Candidate, Interviewer, TimeSlot, DayOfWeek
 from scheduler_engine import (
     generate_feasible_assignments,
     calculate_quality_score,
-    optimal_assign,
+    optimal_assign_hungarian,
     get_slots_within_window
 )
 from ai_processor import parse_availability_with_ai
@@ -160,9 +160,8 @@ class TestSchedulingAlgorithmEdgeCases:
         triplets = generate_feasible_assignments([candidate], [interviewer])
         assert len(triplets) == 0, "Should find no overlaps"
         
-        # Simulate full flow
-        scored = [(c, s, i, 0) for c, s, i in triplets]
-        assignments, unassigned = optimal_assign(scored, [candidate])
+        # Simulate full flow using Hungarian Algorithm
+        assignments, unassigned = optimal_assign_hungarian([candidate], [interviewer])
         
         assert len(assignments) == 0, "No assignments possible"
         assert len(unassigned) == 1, "Candidate should be unassigned"
@@ -203,10 +202,7 @@ class TestSchedulingAlgorithmEdgeCases:
         ]
         
         triplets = generate_feasible_assignments(candidates, interviewers)
-        scored = [(c, s, i, calculate_quality_score(c, s, i, len(i.availability))) 
-                 for c, s, i in triplets]
-        
-        assignments, unassigned = optimal_assign(scored, candidates)
+        assignments, unassigned = optimal_assign_hungarian(candidates, interviewers)
         
         # Only 2 interviewers * 1 slot each = max 2 assignments
         assert len(assignments) <= 2, "Cannot exceed interviewer capacity"
@@ -231,11 +227,7 @@ class TestSchedulingAlgorithmEdgeCases:
             ]
         )
         
-        triplets = generate_feasible_assignments(candidates, [interviewer])
-        scored = [(c, s, i, calculate_quality_score(c, s, i, len(i.availability))) 
-                 for c, s, i in triplets]
-        
-        assignments, unassigned = optimal_assign(scored, candidates)
+        assignments, unassigned = optimal_assign_hungarian(candidates, [interviewer])
         
         # Both candidates should get assigned to different slots
         assert len(assignments) == 2, "Single interviewer can handle 2 sequential interviews"
@@ -294,8 +286,9 @@ class TestSchedulingAlgorithmEdgeCases:
         # Score the compromise slot (neither's preference)
         score = calculate_quality_score(candidate, slot_compromise, interviewer, 1)
         
-        # Should NOT get preference bonuses
-        assert score < 1500, "Compromise slot should not get full preference bonus"
+        # Should NOT get preference bonuses (+1000 candidate, +500 interviewer)
+        # Should get: Peak Time (+500), Duration (+100), Scarcity (+1000) = ~1600
+        assert score < 2000, "Compromise slot should not get full preference bonus"
         
         # But should get time optimality bonus (noon is decent)
         assert score > 100, "Should still get some quality points"
@@ -349,7 +342,7 @@ class TestSchedulingAlgorithmEdgeCases:
         # Scarce should get 1000/1 = 1000 bonus
         # Abundant should get 1000/20 = 50 bonus
         assert score_scarce > score_abundant, "Scarce interviewer should score higher"
-        assert (score_scarce - score_abundant) >= 900, "Difference should be ~950"
+        assert (score_scarce - score_abundant) >= 900, "Difference should be >= 900"
     
     def test_ec017_no_preferences_fallback_scoring(self):
         """EC-017: No preferences should fall back to time/duration scoring"""
@@ -403,9 +396,7 @@ class TestReassignmentEdgeCases:
         )
         
         triplets = generate_feasible_assignments([candidate], [interviewer])
-        scored = [(c, s, i, calculate_quality_score(c, s, i, 1)) for c, s, i in triplets]
-        
-        assignments, unassigned = optimal_assign(scored, [candidate])
+        assignments, unassigned = optimal_assign_hungarian([candidate], [interviewer])
         
         # Now simulate cancellation by removing the only assignment
         if assignments:
@@ -442,9 +433,7 @@ class TestOutputEdgeCases:
         )
         
         triplets = generate_feasible_assignments([candidate], [interviewer])
-        scored = [(c, s, i, calculate_quality_score(c, s, i, 2)) for c, s, i in triplets]
-        
-        assignments, unassigned = optimal_assign(scored, [candidate])
+        assignments, unassigned = optimal_assign_hungarian([candidate], [interviewer])
         
         assert len(assignments) == 1, "Should have 1 assignment"
         # Alternatives should be 1 (not forced to 3)
@@ -460,8 +449,7 @@ class TestOutputEdgeCases:
         triplets = generate_feasible_assignments([], [interviewer])
         assert len(triplets) == 0, "No candidates = no assignments"
         
-        scored = []
-        assignments, unassigned = optimal_assign(scored, [])
+        assignments, unassigned = optimal_assign_hungarian([], [interviewer])
         assert len(assignments) == 0
         assert len(unassigned) == 0
 
@@ -469,3 +457,4 @@ class TestOutputEdgeCases:
 # Run tests with: pytest test_edge_cases.py -v
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])
+
