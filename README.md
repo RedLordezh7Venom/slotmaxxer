@@ -125,16 +125,6 @@ The "Quality Score" ensures **Global Optimization** while preserving recruiter i
 
 ---
 
-### 🤝 Contributing
-
-We love builders! If you have a smarter optimization algorithm or a cleaner UI component, open a PR.
-
-1. Fork the repo.
-2. Create a branch (`git checkout -b feat/YourFeature`).
-3. Commit (`git commit -am 'Add something awesome'`).
-4. Push (`git push origin feat/YourFeature`).
-5. Open a Pull Request.
-
 ### 🧪 Testing & Quality
 
 Verify the engine's reliability across 50+ comprehensive test scenarios, including the new Hungarian benchmarks:
