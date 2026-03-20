@@ -348,39 +348,38 @@ def parse_availability_with_ai(text: str) -> List[TimeSlot]:
 def generate_assignment_reasoning(
     candidate_name: str,
     interviewer_name: str,
-    slot: TimeSlot,
-    score: int,
-    is_preferred: bool = False,
+    slot_time: str,
+    preference_matched: bool,
+    scarcity_reason: str,
+    time_quality: str,
 ) -> str:
-    """Generates a natural language explanation for why a specific slot was chosen."""
+    """Generates a structured natural language explanation for why a specific slot was chosen."""
     if not client:
-        return f"Matched based on overall quality score ({score}) and mutual availability."
+        return f"Matched on {slot_time} based on interviewer load and availability."
 
     try:
         prompt = f"""
-        Explain why {candidate_name} was scheduled with {interviewer_name} 
-        at {slot.day.value} {slot.start_time.strftime('%H:%M')}.
-        Context:
-        - Quality Score: {score}
-        - Matches Candidate Preference: {is_preferred}
-        - Constraints: { 'High priority' if score > 2000 else 'System-optimized' }
-        
-        Rules: Max 2-3 sentences. Enthusiastic but professional.
-        """
+Explain why {candidate_name} was assigned to {interviewer_name} at {slot_time}.
+Consider:
+- Was this their preferred time? {'Yes' if preference_matched else 'No, but mutually available'}
+- Why this interviewer? {scarcity_reason}
+- Why this time of day? {time_quality}
+Keep it 2 sentences, professional tone.
+"""
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
-                {"role": "system", "content": "You provide short, helpful interview scheduling justifications."},
+                {"role": "system", "content": "You are a professional recruiting assistant providing concise scheduling justifications."},
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.7,
+            temperature=0.3,
             max_tokens=150,
         )
         return response.choices[0].message.content.strip()
 
     except Exception as e:
         logger.error(f"Reasoning Gen Error: {e}")
-        return f"Optimal assignment considering both preference and resource scarcity (Score: {score})."
+        return f"Optimal assignment at {slot_time} prioritizing {scarcity_reason}."
 
 
 def resolve_conflicts_with_ai(

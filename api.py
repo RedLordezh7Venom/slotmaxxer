@@ -2,6 +2,7 @@ import uuid
 import logging
 import os
 import json
+from datetime import time
 from typing import List, Optional
 from dotenv import load_dotenv
 
@@ -274,18 +275,34 @@ async def schedule_interviews(req: ScheduleRequest):
                 assignments, unassigned = optimal_assign(scored, internal_candidates)
 
         # 5. Enrich with AI Reasoning
+        interviewer_total_slots = {i.id: len(i.availability) for i in internal_interviewers}
         final_assignments = []
         for a in assignments:
             # Map IDs back to objects for reasoning name lookup
             cand = next(c for c in internal_candidates if c.id == a.candidate_id)
             intv = next(i for i in internal_interviewers if i.id == a.interviewer_id)
             
+            # 5a. Determine reasoning context
+            pref_matched = any(p.contains(a.slot) for p in cand.preferred_slots)
+            
+            # Scarcity: Is the interviewer scarce? (Less than 5 slots total)
+            scarcity_reason = "Limited interviewer availability" if interviewer_total_slots.get(intv.id, 10) < 5 else "Balanced interviewer load"
+            
+            # Time Quality: Peak vs Standard
+            if a.slot.start_time >= time(10, 0) and a.slot.end_time <= time(14, 0):
+                time_quality = "Peak productivity window (10 AM - 2 PM)"
+            elif a.slot.start_time >= time(9, 0) and a.slot.end_time <= time(16, 0):
+                time_quality = "Standard business hours"
+            else:
+                time_quality = "Available window"
+
             ai_reasoning = generate_assignment_reasoning(
                 candidate_name=cand.name,
                 interviewer_name=intv.name,
-                slot=a.slot,
-                score=a.quality_score,
-                is_preferred=any(p.contains(a.slot) for p in cand.preferred_slots)
+                slot_time=f"{a.slot.day.value} at {a.slot.start_time.strftime('%H:%M')}",
+                preference_matched=pref_matched,
+                scarcity_reason=scarcity_reason,
+                time_quality=time_quality
             )
             
             final_assignments.append(AssignmentResponse(
