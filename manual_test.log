@@ -1,0 +1,40 @@
+﻿uv : Traceback (most recent 
+call last):
+At line:1 char:1
++ uv run python 
+tests/test_manual.py 2>&1 | 
+Out-File -Encoding utf8 man 
+...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
+    + CategoryInfo          : 
+    NotSpecified: (Traceback  
+   (most recent call last):   
+ :String) [], RemoteExcept    
+ion
+    + FullyQualifiedErrorId : 
+    NativeCommandError
+ 
+  File "E:\Repositories\slotma
+xxer\tests\test_manual.py", 
+line 471, in <module>
+    main()
+  File "E:\Repositories\slotma
+xxer\tests\test_manual.py", 
+line 414, in main
+    print("""
+  File "C:\Users\prabh\AppData
+\Roaming\uv\python\cpython-3.1
+2.2-windows-x86_64-none\Lib\en
+codings\cp1252.py", line 19, 
+in encode
+    return codecs.charmap_enco
+de(input,self.errors,encoding_
+table)[0]
+           ^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^
+UnicodeEncodeError: 'charmap' 
+codec can't encode characters 
+in position 6-66: character 
+maps to <undefined>

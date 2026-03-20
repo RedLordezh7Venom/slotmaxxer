@@ -6,8 +6,8 @@ from datetime import datetime, date, timedelta, time
 # Scoring Weights
 PREF_CANDIDATE_WEIGHT = 1000
 PREF_INTERVIEWER_WEIGHT = 500
-TIME_OPTIMALITY_HIGH_WEIGHT = 200  # 10 AM - 2 PM
-TIME_OPTIMALITY_MEDIUM_WEIGHT = 100 # 9 AM - 4 PM
+TIME_OPTIMALITY_HIGH_WEIGHT = 500  # 10 AM - 2 PM
+TIME_OPTIMALITY_MEDIUM_WEIGHT = 300 # 9 AM - 4 PM
 DURATION_BONUS_WEIGHT = 100         # >= 60 min
 SCARCITY_BASE = 1000                # Scarcity = SCARCITY_BASE / interviewer_slot_count
 
@@ -240,7 +240,7 @@ def build_cost_matrix(
                     candidate,
                     effective_slot,
                     interviewer,
-                    len(col_keys),  # use total columns as a proxy for interviewer density
+                    len(interviewer.availability),  # Use base slots, not discretized chunks
                 )
                 cost = MAX_COST - quality
 

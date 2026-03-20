@@ -1,0 +1,173 @@
+﻿input:
+test this 
+{
+  "candidates": [
+    {"name": "Alice Chen", "availability": "Monday-Wednesday 9 AM-5 PM"},
+    {"name": "Bob Martinez", "availability": "Tuesday-Thursday 10 AM-3 PM"},
+    {"name": "Carol Johnson", "availability": "Monday 2-5 PM, Wednesday 9 AM-12 PM"},
+    {"name": "David Kim", "availability": "Tuesday-Wednesday 1-4 PM"},
+    {"name": "Emma Wilson", "availability": "Monday-Friday 9 AM-6 PM"}
+  ],
+  "interviewers": [
+    {"name": "Dr. Sarah (CTO)", "availability": "Monday 10-11 AM, Wednesday 2-3 PM"},
+    {"name": "Mike (Engineering Lead)", "availability": "Monday-Thursday 10 AM-4 PM"},
+    {"name": "Lisa (Product Manager)", "availability": "Tuesday 11 AM-2 PM, Thursday 9 AM-12 PM"},
+    {"name": "James (Senior Engineer)", "availability": "Monday-Wednesday 1-5 PM"},
+    {"name": "Nina (HR Director)", "availability": "Monday-Friday 9 AM-5 PM"}
+  ],
+  "interview_duration_minutes": 60
+}
+{
+    "success":  true,
+    "assignments":  [
+                        {
+                            "candidate":  "Alice Chen",
+                            "interviewer":  "Dr. Sarah (CTO)",
+                            "slot":  {
+                                         "day":  "MONDAY",
+                                         "date":  "2026-03-23",
+                                         "time":  "10:00 - 11:00"
+                                     },
+                            "score":  1100,
+                            "reasoning":  "I scheduled Alice Chen with Dr. Sarah at MONDAY 10:00 due to her high Quality Score of 1100, indicating a strong fit for the role. This system-optimized schedule prioritizes the most qualified candidates, ensuring Dr. Sarah has an opportunity to discuss Alice\u0027s qualifications in-depth.",
+                            "alternatives":  [
+                                                 {
+                                                     "day":  "TUESDAY",
+                                                     "date":  "2026-03-24",
+                                                     "time":  "12:30 - 13:30"
+                                                 },
+                                                 {
+                                                     "day":  "TUESDAY",
+                                                     "date":  "2026-03-24",
+                                                     "time":  "11:00 - 12:00"
+                                                 },
+                                                 {
+                                                     "day":  "TUESDAY",
+                                                     "date":  "2026-03-24",
+                                                     "time":  "13:00 - 14:00"
+                                                 }
+                                             ],
+                            "email_template":  "Subject: Interview Invitation: [SlotMaxxer] Alice Chen x Dr. Sarah (CTO)\n\nHi Alice Chen,\n\nGreat news! We\u0027ve optimized our panel\u0027s availability and would like to invite you for an interview with Dr. Sarah (CTO).\n\nð\u0085 Confirmed Time: MONDAY 10:00\n\n---\nð¡ Why this slot was chosen:\n\"I scheduled Alice Chen with Dr. Sarah at MONDAY 10:00 due to her high Quality Score of 1100, indicating a strong fit for the role. This system-optimized schedule prioritizes the most qualified candidates, ensuring Dr. Sarah has an opportunity to discuss Alice\u0027s qualifications in-depth.\"\n---\n\n\nIf this time doesn\u0027t work, we have these backup options:\n- TUESDAY 12:30\n- TUESDAY 11:00\n- TUESDAY 13:00\n\nð Calendar Invite Details:\nSummary: Interview with Dr. Sarah (CTO)\nTime: MONDAY 10:00\nPlatform: Video Link to follow\n\nPlease confirm if this works for you!\n\nBest regards,\nSlotMaxxer Scheduling Team"
+                        },
+                        {
+                            "candidate":  "Bob Martinez",
+                            "interviewer":  "Lisa (Product Manager)",
+                            "slot":  {
+                                         "day":  "TUESDAY",
+                                         "date":  "2026-03-24",
+                                         "time":  "11:00 - 12:00"
+                                     },
+                            "score":  1100,
+                            "reasoning":  "I scheduled Bob Martinez with Lisa at TUESDAY 11:00 because our system-optimized algorithm prioritized this time slot for maximum efficiency and productivity, ensuring a seamless integration with the meeting\u0027s purpose. The Quality Score of 1100 further supported this decision, indicating a high potential for a successful meeting outcome.",
+                            "alternatives":  [
+                                                 {
+                                                     "day":  "TUESDAY",
+                                                     "date":  "2026-03-24",
+                                                     "time":  "12:00 - 13:00"
+                                                 },
+                                                 {
+                                                     "day":  "TUESDAY",
+                                                     "date":  "2026-03-24",
+                                                     "time":  "12:30 - 13:30"
+                                                 },
+                                                 {
+                                                     "day":  "TUESDAY",
+                                                     "date":  "2026-03-24",
+                                                     "time":  "13:00 - 14:00"
+                                                 }
+                                             ],
+                            "email_template":  "Subject: Interview Invitation: [SlotMaxxer] Bob Martinez x Lisa (Product Manager)\n\nHi Bob Martinez,\n\nGreat news! We\u0027ve optimized our panel\u0027s availability and would like to invite you for an interview with Lisa (Product Manager).\n\nð\u0085 Confirmed Time: TUESDAY 11:00\n\n---\nð¡ Why this slot was chosen:\n\"I scheduled Bob Martinez with Lisa at TUESDAY 11:00 because our system-optimized algorithm prioritized this time slot for maximum efficiency and productivity, ensuring a seamless integration with the meeting\u0027s purpose. The Quality Score of 1100 further supported this decision, indicating a high potential for a successful meeting outcome.\"\n---\n\n\nIf this time doesn\u0027t work, we have these backup options:\n- TUESDAY 12:00\n- TUESDAY 12:30\n- TUESDAY 13:00\n\nð Calendar Invite Details:\nSummary: Interview with Lisa (Product Manager)\nTime: TUESDAY 11:00\nPlatform: Video Link to follow\n\nPlease confirm if this works for you!\n\nBest regards,\nSlotMaxxer Scheduling Team"
+                        },
+                        {
+                            "candidate":  "David Kim",
+                            "interviewer":  "Lisa (Product Manager)",
+                            "slot":  {
+                                         "day":  "TUESDAY",
+                                         "date":  "2026-03-24",
+                                         "time":  "13:00 - 14:00"
+                                     },
+                            "score":  1100,
+                            "reasoning":  "David Kim was scheduled with Lisa (Product Manager) at TUESDAY 13:00 due to the system\u0027s optimization. With a high Quality Score of 1100 and no candidate preference match, the system prioritized a productive meeting, ensuring the most relevant interactions. This scheduling decision maximizes the chances of a successful conversation with Lisa.",
+                            "alternatives":  [
+                                                 {
+                                                     "day":  "TUESDAY",
+                                                     "date":  "2026-03-24",
+                                                     "time":  "13:00 - 14:00"
+                                                 },
+                                                 {
+                                                     "day":  "WEDNESDAY",
+                                                     "date":  "2026-03-25",
+                                                     "time":  "13:00 - 14:00"
+                                                 },
+                                                 {
+                                                     "day":  "WEDNESDAY",
+                                                     "date":  "2026-03-25",
+                                                     "time":  "14:00 - 15:00"
+                                                 }
+                                             ],
+                            "email_template":  "Subject: Interview Invitation: [SlotMaxxer] David Kim x Lisa (Product Manager)\n\nHi David Kim,\n\nGreat news! We\u0027ve optimized our panel\u0027s availability and would like to invite you for an interview with Lisa (Product Manager).\n\nð\u0085 Confirmed Time: TUESDAY 13:00\n\n---\nð¡ Why this slot was chosen:\n\"David Kim was scheduled with Lisa (Product Manager) at TUESDAY 13:00 due to the system\u0027s optimization. With a high Quality Score of 1100 and no candidate preference match, the system prioritized a productive meeting, ensuring the most relevant interactions. This scheduling decision maximizes the chances of a successful conversation with Lisa.\"\n---\n\n\nIf this time doesn\u0027t work, we have these backup options:\n- TUESDAY 13:00\n- WEDNESDAY 13:00\n- WEDNESDAY 14:00\n\nð Calendar Invite Details:\nSummary: Interview with Lisa (Product Manager)\nTime: TUESDAY 13:00\nPlatform: Video Link to follow\n\nPlease confirm if this works for you!\n\nBest regards,\nSlotMaxxer Scheduling Team"
+                        },
+                        {
+                            "candidate":  "Carol Johnson",
+                            "interviewer":  "Mike (Engineering Lead)",
+                            "slot":  {
+                                         "day":  "WEDNESDAY",
+                                         "date":  "2026-03-25",
+                                         "time":  "10:00 - 11:00"
+                                     },
+                            "score":  850,
+                            "reasoning":  "Carol Johnson was scheduled with Mike (Engineering Lead) at WEDNESDAY 10:00 due to the system\u0027s optimization algorithm prioritizing this time slot based on her high quality score of 850. This schedule allows for a productive conversation with Mike, despite the candidate not having a preference for this time.",
+                            "alternatives":  [
+                                                 {
+                                                     "day":  "WEDNESDAY",
+                                                     "date":  "2026-03-25",
+                                                     "time":  "11:00 - 12:00"
+                                                 },
+                                                 {
+                                                     "day":  "WEDNESDAY",
+                                                     "date":  "2026-03-25",
+                                                     "time":  "10:30 - 11:30"
+                                                 },
+                                                 {
+                                                     "day":  "WEDNESDAY",
+                                                     "date":  "2026-03-25",
+                                                     "time":  "10:00 - 11:00"
+                                                 }
+                                             ],
+                            "email_template":  "Subject: Interview Invitation: [SlotMaxxer] Carol Johnson x Mike (Engineering Lead)\n\nHi Carol Johnson,\n\nGreat news! We\u0027ve optimized our panel\u0027s availability and would like to invite you for an interview with Mike (Engineering Lead).\n\nð\u0085 Confirmed Time: WEDNESDAY 10:00\n\n---\nð¡ Why this slot was chosen:\n\"Carol Johnson was scheduled with Mike (Engineering Lead) at WEDNESDAY 10:00 due to the system\u0027s optimization algorithm prioritizing this time slot based on her high quality score of 850. This schedule allows for a productive conversation with Mike, despite the candidate not having a preference for this time.\"\n---\n\n\nIf this time doesn\u0027t work, we have these backup options:\n- WEDNESDAY 11:00\n- WEDNESDAY 10:30\n- WEDNESDAY 10:00\n\nð Calendar Invite Details:\nSummary: Interview with Mike (Engineering Lead)\nTime: WEDNESDAY 10:00\nPlatform: Video Link to follow\n\nPlease confirm if this works for you!\n\nBest regards,\nSlotMaxxer Scheduling Team"
+                        },
+                        {
+                            "candidate":  "Emma Wilson",
+                            "interviewer":  "Lisa (Product Manager)",
+                            "slot":  {
+                                         "day":  "TUESDAY",
+                                         "date":  "2026-03-24",
+                                         "time":  "12:00 - 13:00"
+                                     },
+                            "score":  1100,
+                            "reasoning":  "I scheduled Emma Wilson with Lisa at TUESDAY 12:00 because our system-optimized algorithm determined this time slot to be the most efficient for the team\u0027s schedule. Given the high Quality Score of 1100, it\u0027s clear that Emma is a strong candidate who can benefit from meeting with Lisa early. By scheduling this meeting at the start of the week, we can ensure Lisa\u0027s undivided attention and make the most of their time together.",
+                            "alternatives":  [
+                                                 {
+                                                     "day":  "MONDAY",
+                                                     "date":  "2026-03-23",
+                                                     "time":  "10:00 - 11:00"
+                                                 },
+                                                 {
+                                                     "day":  "TUESDAY",
+                                                     "date":  "2026-03-24",
+                                                     "time":  "12:30 - 13:30"
+                                                 },
+                                                 {
+                                                     "day":  "TUESDAY",
+                                                     "date":  "2026-03-24",
+                                                     "time":  "13:00 - 14:00"
+                                                 }
+                                             ],
+                            "email_template":  "Subject: Interview Invitation: [SlotMaxxer] Emma Wilson x Lisa (Product Manager)\n\nHi Emma Wilson,\n\nGreat news! We\u0027ve optimized our panel\u0027s availability and would like to invite you for an interview with Lisa (Product Manager).\n\nð\u0085 Confirmed Time: TUESDAY 12:00\n\n---\nð¡ Why this slot was chosen:\n\"I scheduled Emma Wilson with Lisa at TUESDAY 12:00 because our system-optimized algorithm determined this time slot to be the most efficient for the team\u0027s schedule. Given the high Quality Score of 1100, it\u0027s clear that Emma is a strong candidate who can benefit from meeting with Lisa early. By scheduling this meeting at the start of the week, we can ensure Lisa\u0027s undivided attention and make the most of their time together.\"\n---\n\n\nIf this time doesn\u0027t work, we have these backup options:\n- MONDAY 10:00\n- TUESDAY 12:30\n- TUESDAY 13:00\n\nð Calendar Invite Details:\nSummary: Interview with Lisa (Product Manager)\nTime: TUESDAY 12:00\nPlatform: Video Link to follow\n\nPlease confirm if this works for you!\n\nBest regards,\nSlotMaxxer Scheduling Team"
+                        }
+                    ],
+    "unassigned":  [
+
+                   ],
+    "conflict_resolution":  null
+}
