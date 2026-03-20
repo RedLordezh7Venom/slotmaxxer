@@ -9,6 +9,7 @@ from typing import List, Optional
 from groq import Groq
 from models import TimeSlot, DayOfWeek, PreferenceLevel, Candidate, Assignment
 from utils import parse_time_string
+import re
 from datetime import time
 
 # Setup Logging
@@ -16,7 +17,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize Groq Client
-# Ensure GROQ_API_KEY is set in your environment
 API_KEY = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=API_KEY) if API_KEY else None
 
@@ -45,18 +45,203 @@ Rules:
 6. Return ONLY a pure JSON list. No preamble or markdown blocks.
 """
 
+# ── Day helpers ────────────────────────────────────────────────────────────────
+_DAY_MAP = {
+    "mon": DayOfWeek.MONDAY,    "monday":    DayOfWeek.MONDAY,
+    "tue": DayOfWeek.TUESDAY,   "tuesday":   DayOfWeek.TUESDAY,
+    "wed": DayOfWeek.WEDNESDAY, "wednesday": DayOfWeek.WEDNESDAY,
+    "thu": DayOfWeek.THURSDAY,  "thursday":  DayOfWeek.THURSDAY,
+    "fri": DayOfWeek.FRIDAY,    "friday":    DayOfWeek.FRIDAY,
+    "sat": DayOfWeek.SATURDAY,  "saturday":  DayOfWeek.SATURDAY,
+    "sun": DayOfWeek.SUNDAY,    "sunday":    DayOfWeek.SUNDAY,
+}
+
+_KEYWORD_DEFAULTS = {
+    "morning":    (time(9,  0), time(12, 0)),
+    "mornings":   (time(9,  0), time(12, 0)),
+    "afternoon":  (time(12, 0), time(17, 0)),
+    "afternoons": (time(12, 0), time(17, 0)),
+    "evening":    (time(17, 0), time(20, 0)),
+    "evenings":   (time(17, 0), time(20, 0)),
+}
+
+_DAY_ORDER = [
+    DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
+    DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY,
+]
+
+
+def _norm_hour(h: int, ampm: str) -> int:
+    """Convert 12-hour to 24-hour. Digits 1-7 with no AM/PM → PM (business-hours heuristic)."""
+    ampm = ampm.strip().upper()
+    if ampm == "AM":
+        return 0 if h == 12 else h
+    if ampm == "PM":
+        return h if h == 12 else h + 12
+    # No AM/PM — infer from value
+    if 1 <= h <= 7:
+        return h + 12
+    return h
+
+
+def _day_range(start_key: str, end_key: str) -> List[DayOfWeek]:
+    """Expand 'Mon-Wed' → [MONDAY, TUESDAY, WEDNESDAY]."""
+    s = _DAY_MAP.get(start_key.lower())
+    e = _DAY_MAP.get(end_key.lower())
+    if s is None or e is None:
+        return []
+    si, ei = _DAY_ORDER.index(s), _DAY_ORDER.index(e)
+    return _DAY_ORDER[si:ei + 1] if si <= ei else [s]
+
+
+def _make_slot(day: DayOfWeek, start: time, end: time, recurring: bool = False) -> Optional[TimeSlot]:
+    try:
+        return TimeSlot(day=day, start_time=start, end_time=end, is_recurring=recurring)
+    except ValueError:
+        return None
+
+
+class DeterministicParser:
+    """
+    Regex-based availability parser — handles ~90% of common formats without AI.
+    Returns [] when no patterns match, so the caller can fall back to Groq.
+
+    Patterns handled (in priority order):
+      P4  day-range + keyword   "Mon-Fri mornings"
+      P2  day-range + times     "Mon-Wed 9 AM-5 PM"
+      P3  single-day + keyword  "Tuesday afternoon"
+      P1  single-day + times    "Tue 2-5 PM" | "Every Monday 10-11 AM"
+    """
+
+    # P1: optional "Every" + single day + time range
+    _P1 = re.compile(
+        r"(?:every\s+)?"
+        r"(mon|tue|wed|thu|fri|sat|sun)\w*"
+        r"\s+"
+        r"(\d{1,2})(?::(\d{2}))?"
+        r"(?:\s*(AM|PM))?"
+        r"\s*[-–to]+\s*"
+        r"(\d{1,2})(?::(\d{2}))?"
+        r"\s*(AM|PM)?",
+        re.IGNORECASE,
+    )
+
+    # P2: day range + time range
+    _P2 = re.compile(
+        r"(mon|tue|wed|thu|fri|sat|sun)\w*"
+        r"\s*[-–]\s*"
+        r"(mon|tue|wed|thu|fri|sat|sun)\w*"
+        r"\s+"
+        r"(\d{1,2})(?::(\d{2}))?"
+        r"\s*(AM|PM)?"
+        r"\s*[-–to]+\s*"
+        r"(\d{1,2})(?::(\d{2}))?"
+        r"\s*(AM|PM)?",
+        re.IGNORECASE,
+    )
+
+    # P3: single day + keyword
+    _P3 = re.compile(
+        r"(?:every\s+)?"
+        r"(mon|tue|wed|thu|fri|sat|sun)\w*"
+        r"\s+"
+        r"(morning|mornings|afternoon|afternoons|evening|evenings)",
+        re.IGNORECASE,
+    )
+
+    # P4: day range + keyword
+    _P4 = re.compile(
+        r"(mon|tue|wed|thu|fri|sat|sun)\w*"
+        r"\s*[-–]\s*"
+        r"(mon|tue|wed|thu|fri|sat|sun)\w*"
+        r"\s+"
+        r"(morning|mornings|afternoon|afternoons|evening|evenings)",
+        re.IGNORECASE,
+    )
+
+    @classmethod
+    def parse(cls, text: str) -> List[TimeSlot]:
+        slots: List[TimeSlot] = []
+        used: List[tuple] = []  # track matched spans to avoid double-counting
+
+        # ── P4: day-range + keyword ──────────────────────────────────────────
+        for m in cls._P4.finditer(text):
+            t_s, t_e = _KEYWORD_DEFAULTS.get(m.group(3).lower(), (time(9,0), time(17,0)))
+            for day in _day_range(m.group(1), m.group(2)):
+                s = _make_slot(day, t_s, t_e)
+                if s:
+                    slots.append(s)
+            used.append(m.span())
+
+        # ── P2: day-range + explicit times ───────────────────────────────────
+        for m in cls._P2.finditer(text):
+            if any(m.start() >= a and m.end() <= b for a, b in used):
+                continue
+            sh, sm = int(m.group(3)), int(m.group(4) or 0)
+            eh, em = int(m.group(6)), int(m.group(7) or 0)
+            sp = (m.group(5) or "").upper()
+            ep = (m.group(8) or "").upper()
+            if not sp and ep:
+                sp = ep
+            for day in _day_range(m.group(1), m.group(2)):
+                s = _make_slot(day, time(_norm_hour(sh, sp), sm), time(_norm_hour(eh, ep), em))
+                if s:
+                    slots.append(s)
+            used.append(m.span())
+
+        # ── P3: single-day + keyword ─────────────────────────────────────────
+        for m in cls._P3.finditer(text):
+            if any(m.start() >= a and m.end() <= b for a, b in used):
+                continue
+            day = _DAY_MAP.get(m.group(1).lower())
+            if not day:
+                continue
+            t_s, t_e = _KEYWORD_DEFAULTS.get(m.group(2).lower(), (time(9,0), time(17,0)))
+            recurring = bool(re.search(r"\bevery\b", m.group(0), re.I))
+            s = _make_slot(day, t_s, t_e, recurring=recurring)
+            if s:
+                slots.append(s)
+            used.append(m.span())
+
+        # ── P1: single-day + explicit times ──────────────────────────────────
+        for m in cls._P1.finditer(text):
+            if any(m.start() >= a and m.end() <= b for a, b in used):
+                continue
+            day = _DAY_MAP.get(m.group(1).lower())
+            if not day:
+                continue
+            sh, sm = int(m.group(2)), int(m.group(3) or 0)
+            eh, em = int(m.group(5)), int(m.group(6) or 0)
+            ep = (m.group(7) or "").upper()
+            recurring = bool(re.search(r"\bevery\b", m.group(0), re.I))
+            s = _make_slot(day, time(_norm_hour(sh, ep), sm), time(_norm_hour(eh, ep), em), recurring=recurring)
+            if s:
+                slots.append(s)
+            used.append(m.span())
+
+        return slots
+
+
 def parse_availability_with_ai(text: str) -> List[TimeSlot]:
     """
-    Primary tool for parsing candidate/interviewer availability.
-    Uses Groq for LLM-based extraction with a deterministic regex fallback.
+    Primary availability parser.
+      1. DeterministicParser  — instant, zero-cost regex (covers ~90% of inputs)
+      2. Groq AI              — only for ambiguous natural language
+      3. parse_time_string    — last-resort rule-based fallback
     """
-    # 1. Check for API key and client validity
+    # ── Step 1: Deterministic ─────────────────────────────────────────────────
+    det_slots = DeterministicParser.parse(text)
+    if det_slots:
+        logger.info(f"DeterministicParser: '{text[:60]}' → {len(det_slots)} slot(s)")
+        return det_slots
+
+    # ── Step 2: Groq AI ───────────────────────────────────────────────────────
     if not client:
         logger.warning("GROQ_API_KEY not found. Falling back to rule-based parser.")
         return parse_time_string(text)
 
     try:
-        # 2. AI Parsing Attempt
+        # Groq AI Parsing
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
