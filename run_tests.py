@@ -9,13 +9,18 @@ import sys
 import time
 from datetime import datetime
 
+# Fix for Windows terminal encoding issues
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 
 def run_command(cmd, description):
     """Run a command and return success status"""
-    print(f"\n{'='*80}")
+    print(f"\n{'-'*80}")
     print(f"Running: {description}")
     print(f"Command: {' '.join(cmd)}")
-    print('='*80)
+    print('-'*80)
     
     start = time.time()
     try:
@@ -47,12 +52,12 @@ def run_command(cmd, description):
 
 def main():
     print("""
-    ╔═══════════════════════════════════════════════════════════╗
-    ║         SlotMaxxer Comprehensive Test Suite              ║
-    ║                                                           ║
-    ║  Testing: Edge Cases, Stress, AI Failures, Security,     ║
-    ║           Performance, and User Acceptance               ║
-    ╚═══════════════════════════════════════════════════════════╝
+    +-----------------------------------------------------------+
+    |         SlotMaxxer Comprehensive Test Suite              |
+    |                                                           |
+    |  Testing: Edge Cases, Stress, AI Failures, Security,     |
+    |           Performance, and User Acceptance               |
+    +-----------------------------------------------------------+
     """)
     
     start_time = datetime.now()
@@ -60,35 +65,35 @@ def main():
     
     # Test Suite 1: Edge Cases
     success, elapsed, output = run_command(
-        ["pytest", "test_edge_cases.py", "-v", "--tb=short", "-x"],
+        ["uv", "run", "pytest", "tests/test_edge_cases.py", "-v", "--tb=short", "-x"],
         "Edge Case Testing (22 tests)"
     )
     results.append(("Edge Cases", success, elapsed, output.count("PASSED"), output.count("FAILED")))
     
     # Test Suite 2: Stress Testing
     success, elapsed, output = run_command(
-        ["pytest", "test_comprehensive.py", "-v", "--tb=short", "-k", "TestStressTesting"],
+        ["uv", "run", "pytest", "tests/test_comprehensive.py", "-v", "--tb=short", "-k", "TestStressTesting"],
         "Stress Testing (8 tests)"
     )
     results.append(("Stress Tests", success, elapsed, output.count("PASSED"), output.count("FAILED")))
     
     # Test Suite 3: Security Testing
     success, elapsed, output = run_command(
-        ["pytest", "test_comprehensive.py", "-v", "--tb=short", "-k", "TestSecurityTesting"],
+        ["uv", "run", "pytest", "tests/test_comprehensive.py", "-v", "--tb=short", "-k", "TestSecurityTesting"],
         "Security Testing (10 tests)"
     )
     results.append(("Security", success, elapsed, output.count("PASSED"), output.count("FAILED")))
     
     # Test Suite 4: Performance Benchmarks
     success, elapsed, output = run_command(
-        ["pytest", "test_comprehensive.py", "-v", "--tb=short", "-k", "TestPerformanceBenchmarks"],
+        ["uv", "run", "pytest", "tests/test_comprehensive.py", "-v", "--tb=short", "-k", "TestPerformanceBenchmarks"],
         "Performance Benchmarks (5 tests)"
     )
     results.append(("Performance", success, elapsed, output.count("PASSED"), output.count("FAILED")))
     
     # Test Suite 5: End-to-End (if exists)
     success, elapsed, output = run_command(
-        ["pytest", "test_e2e.py", "-v", "--tb=short"],
+        ["uv", "run", "pytest", "tests/test_e2e.py", "-v", "--tb=short"],
         "End-to-End Integration Tests"
     )
     results.append(("E2E Tests", success, elapsed, output.count("PASSED"), output.count("FAILED")))
@@ -143,10 +148,10 @@ def main():
         print(f"{criterion:<30} Target: {target:<15} {status}")
     
     # Final Verdict
-    print("\n" + "="*80)
+    print("-" * 80)
     if all_passed and all(c[2] for c in criteria[:3]):  # Core criteria
-        print("🎉 ALL TESTS PASSED - SlotMaxxer is production-ready!")
-        print("="*80)
+        print("ALL TESTS PASSED - SlotMaxxer is production-ready!")
+        print("-" * 80)
         return 0
     else:
         print("⚠️  SOME TESTS FAILED - Review failures above")

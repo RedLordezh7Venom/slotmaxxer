@@ -1,0 +1,18 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.12.2, pytest-9.0.2, pluggy-1.6.0
+rootdir: E:\Repositories\slotmaxxer
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collected 22 items
+
+test_edge_cases.py ............F.........                                [100%]
+
+================================== FAILURES ===================================
+_ TestSchedulingAlgorithmEdgeCases.test_ec013_score_tie_deterministic_ordering _
+test_edge_cases.py:266: in test_ec013_score_tie_deterministic_ordering
+    assert score1 >= 2000 and score2 >= 2000, "Both should be high quality"
+           ^^^^^^
+E   NameError: name 'score1' is not defined
+=========================== short test summary info ===========================
+FAILED test_edge_cases.py::TestSchedulingAlgorithmEdgeCases::test_ec013_score_tie_deterministic_ordering
+======================== 1 failed, 21 passed in 0.70s =========================

@@ -1,0 +1,36 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.12.2, pytest-9.0.2, pluggy-1.6.0
+rootdir: E:\Repositories\slotmaxxer
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collected 22 items
+
+test_edge_cases.py ...F..F.....F.........                                [100%]
+
+================================== FAILURES ===================================
+_______ TestInputParsingEdgeCases.test_ec004_midnight_boundary_handling _______
+test_edge_cases.py:75: in test_ec004_midnight_boundary_handling
+    slot = TimeSlot(
+<string>:9: in __init__
+    ???
+models.py:38: in __post_init__
+    raise ValueError(
+E   ValueError: Invalid TimeSlot: start_time (23:00:00) must be before end_time (01:00:00)
+__________ TestInputParsingEdgeCases.test_ec007_past_date_rejection ___________
+test_edge_cases.py:130: in test_ec007_past_date_rejection
+    assert slot.date >= date.today(), "Cannot schedule in the past"
+E   AssertionError: Cannot schedule in the past
+E   assert datetime.date(2020, 1, 1) >= datetime.date(2026, 3, 20)
+E    +  where datetime.date(2020, 1, 1) = [MONDAY 09:00-17:00].date
+E    +  and   datetime.date(2026, 3, 20) = <built-in method today of type object at 0x00007FFB2BA90CD0>()
+E    +    where <built-in method today of type object at 0x00007FFB2BA90CD0> = date.today
+_ TestSchedulingAlgorithmEdgeCases.test_ec013_score_tie_deterministic_ordering _
+test_edge_cases.py:270: in test_ec013_score_tie_deterministic_ordering
+    assert score1 == score2, "Scores should be tied"
+E   AssertionError: Scores should be tied
+E   assert 2300 == 2200
+=========================== short test summary info ===========================
+FAILED test_edge_cases.py::TestInputParsingEdgeCases::test_ec004_midnight_boundary_handling
+FAILED test_edge_cases.py::TestInputParsingEdgeCases::test_ec007_past_date_rejection
+FAILED test_edge_cases.py::TestSchedulingAlgorithmEdgeCases::test_ec013_score_tie_deterministic_ordering
+======================== 3 failed, 19 passed in 1.02s =========================

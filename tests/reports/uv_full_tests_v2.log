@@ -1,0 +1,46 @@
+﻿
+    +-----------------------------------------------------------+
+    |         SlotMaxxer Comprehensive Test Suite              |
+    |                                                           |
+    |  Testing: Edge Cases, Stress, AI Failures, Security,     |
+    |           Performance, and User Acceptance               |
+    +-----------------------------------------------------------+
+    
+
+--------------------------------------------------------------------------------
+Running: Edge Case Testing (22 tests)
+Command: uv run pytest test_edge_cases.py -v --tb=short -x
+--------------------------------------------------------------------------------
+============================= test session starts =============================
+platform win32 -- Python 3.12.2, pytest-9.0.2, pluggy-1.6.0 -- E:\Repositories\slotmaxxer\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: E:\Repositories\slotmaxxer
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collecting ... collected 22 items
+
+test_edge_cases.py::TestInputParsingEdgeCases::test_ec001_empty_candidate_availability PASSED [  4%]
+test_edge_cases.py::TestInputParsingEdgeCases::test_ec002_malformed_time_strings PASSED [  9%]
+test_edge_cases.py::TestInputParsingEdgeCases::test_ec003_afternoon_keyword_expansion PASSED [ 13%]
+test_edge_cases.py::TestInputParsingEdgeCases::test_ec004_midnight_boundary_handling PASSED [ 18%]
+test_edge_cases.py::TestInputParsingEdgeCases::test_ec005_duplicate_slot_deduplication PASSED [ 22%]
+test_edge_cases.py::TestInputParsingEdgeCases::test_ec006_overlapping_availability_merge PASSED [ 27%]
+test_edge_cases.py::TestInputParsingEdgeCases::test_ec007_past_date_rejection PASSED [ 31%]
+test_edge_cases.py::TestInputParsingEdgeCases::test_ec008_mixed_time_format_normalization PASSED [ 36%]
+test_edge_cases.py::TestSchedulingAlgorithmEdgeCases::test_ec009_no_overlap_graceful_failure PASSED [ 40%]
+test_edge_cases.py::TestSchedulingAlgorithmEdgeCases::test_ec010_partial_overlap_insufficient_duration PASSED [ 45%]
+test_edge_cases.py::TestSchedulingAlgorithmEdgeCases::test_ec011_interviewer_capacity_exhaustion PASSED [ 50%]
+test_edge_cases.py::TestSchedulingAlgorithmEdgeCases::test_ec012_single_interviewer_sequential_assignment PASSED [ 54%]
+test_edge_cases.py::TestSchedulingAlgorithmEdgeCases::test_ec013_score_tie_deterministic_ordering PASSED [ 59%]
+test_edge_cases.py::TestSchedulingAlgorithmEdgeCases::test_ec014_preference_conflict_reasoning PASSED [ 63%]
+test_edge_cases.py::TestSchedulingAlgorithmEdgeCases::test_ec015_recurring_availability_expansion PASSED [ 68%]
+test_edge_cases.py::TestSchedulingAlgorithmEdgeCases::test_ec016_scarcity_multiplier_logic PASSED [ 72%]
+test_edge_cases.py::TestSchedulingAlgorithmEdgeCases::test_ec017_no_preferences_fallback_scoring PASSED [ 77%]
+test_edge_cases.py::TestReassignmentEdgeCases::test_ec018_cascading_reassignment_stability PASSED [ 81%]
+test_edge_cases.py::TestReassignmentEdgeCases::test_ec019_cancellation_no_alternatives PASSED [ 86%]
+test_edge_cases.py::TestReassignmentEdgeCases::test_ec020_reassignment_quality_preservation PASSED [ 90%]
+test_edge_cases.py::TestOutputEdgeCases::test_ec021_fewer_than_three_alternatives PASSED [ 95%]
+test_edge_cases.py::TestOutputEdgeCases::test_ec022_zero_candidates_error PASSED [100%]
+
+============================= 22 passed in 0.52s ==============================
+
