@@ -41,15 +41,41 @@ Recruiters spend **~3 hours weekly** manually cross-referencing natural language
 ### 🛣️ How It Works
 
 ```mermaid
+%%{init: { 'theme': 'base', 'themeVariables': {
+    'primaryColor': '#1e293b',
+    'primaryTextColor': '#f8fafc',
+    'primaryBorderColor': '#334155',
+    'lineColor': '#6366f1',
+    'secondaryColor': '#0f172a',
+    'tertiaryColor': '#1e293b',
+    'mainBkg': '#0f172a',
+    'nodeBorder': '#334155',
+    'clusterBkg': '#0f172a',
+    'clusterBorder': '#334155',
+    'defaultLinkColor': '#6366f1',
+    'edgeLabelBackground':'#1e293b'
+}}}%%
 graph TD
-    A[Recruiter Input] -->|Raw Text| B{Deterministic Parser}
+    A[Recruiter Input] ---|Paste Raw Text| B{Deterministic Parser}
     B -->|Fallback| C(Groq AI NLU)
     B -->|Structured Slots| D[NxM Cost Matrix]
     C -->|Structured Slots| D
-    D -->|Hungarian Solve| E(Global Optimization)
-    E -->|Iterative Conflict Resolution| F[Final Schedule Grid]
-    F -->|AI Reasoning| G[Decision Dashboard]
-    G -->|One-Click| H[Professional Invitation]
+    D -->|Hungarian Solve| E((Optimal Solution))
+    E -->|Iterative Check| F{Double Booking?}
+    F -->|Conflict| G[Re-Solve Matrix]
+    G --> D
+    F -->|Clean| H[Final Schedule Grid]
+    H -->|AI Reasoning| I[Decision Dashboard]
+    
+    style A fill:#1e293b,stroke:#334155,color:#f8fafc
+    style B fill:#312e81,stroke:#6366f1,color:#e0e7ff
+    style C fill:#1e1b4b,stroke:#4338ca,color:#e0e7ff
+    style D fill:#0f172a,stroke:#334155,color:#94a3b8
+    style E fill:#064e3b,stroke:#10b981,color:#ecfdf5
+    style F fill:#450a0a,stroke:#dc2626,color:#fef2f2
+    style G fill:#1e293b,stroke:#334155,color:#f8fafc
+    style H fill:#064e3b,stroke:#10b981,color:#ecfdf5
+    style I fill:#0c4a6e,stroke:#0ea5e9,color:#f0f9ff
 ```
 
 ---
